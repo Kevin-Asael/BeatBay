@@ -81,6 +81,7 @@ builder.Services.AddCors(options =>
 
 // Agregar servicios adicionales
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IQRCodeService, QRCodeService>();
 
 var app = builder.Build();
 
