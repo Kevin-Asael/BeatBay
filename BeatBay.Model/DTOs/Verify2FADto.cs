@@ -10,9 +10,10 @@ namespace BeatBay.DTOs
     public class Verify2FADto
     {
         [Required]
-        public string Code { get; set; }
+        public string UserName { get; set; }
 
         [Required]
-        public string Password { get; set; }
+        [StringLength(6, MinimumLength = 6)]
+        public string Code { get; set; }
     }
 }
