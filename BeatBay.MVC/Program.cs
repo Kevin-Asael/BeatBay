@@ -1,74 +1,87 @@
+using System;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) Servicios
+// 1) Añade MVC y Razor
 builder.Services.AddControllersWithViews();
 
-// 2) HttpClient nombrado para interactuar con la API
+// 2) Configura HttpClient para la API (BaseUrl sin "/api")
 builder.Services.AddHttpClient("BeatBay.API", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["ApiSettings:BaseUrl"]);  // Usa la URL de la API definida en appsettings.json
+    // Lee la URL base de la API (sin barra al final o con ella)
+    var apiBaseRaw = builder.Configuration.GetValue<string>("ApiSettings:BaseUrl")
+                  ?? throw new InvalidOperationException("Falta ApiSettings:BaseUrl en appsettings.json");
+    // Asegura que termine con '/'
+    var apiBase = apiBaseRaw.EndsWith('/') ? apiBaseRaw : apiBaseRaw + '/';
+    client.BaseAddress = new Uri(apiBase);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
-// 3) Autenticación con Cookie (almacena el JWT en la cookie)
+// 3) Sesión en memoria para guardar el JWT
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = "BeatBaySession";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.IdleTimeout = TimeSpan.FromHours(2);
+});
+
+// 4) Autenticación con cookies (envuelve el JWT)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/VAuth/Login";  // Redirige al login en el controlador VAuthController
-        options.LogoutPath = "/VAuth/Logout"; // Redirige al logout en el controlador VAuthController
-        options.Cookie.Name = "auth_cookie"; // Nombre de la cookie de autenticación
-        options.Cookie.HttpOnly = true;  // Solo accesible por el servidor, no en JavaScript
-        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;  // Asegura la cookie en producción
-        options.ExpireTimeSpan = TimeSpan.FromHours(2);  // Duración de la sesión (2 horas)
+        options.LoginPath = "/VAuth/Login";
+        options.LogoutPath = "/VAuth/Logout";
+        options.Cookie.Name = "BeatBayAuth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.ExpireTimeSpan = TimeSpan.FromHours(2);
     });
 
-// 4) Configuración de CORS (permitir acceso desde tu frontend MVC)
-builder.Services.AddCors(options =>
+// 5) CORS (opcional)
+builder.Services.AddCors(o => o.AddPolicy("AllowAPI", policy =>
 {
-    options.AddPolicy("AllowWeb",
-        policy => policy
-            .WithOrigins("https://localhost:7194")  // Cambia esto por tu URL de frontend en producción
-            .AllowAnyHeader()
-            .AllowAnyMethod());
-});
+    var apiBase = builder.Configuration.GetValue<string>("ApiSettings:BaseUrl");
+    if (!string.IsNullOrEmpty(apiBase))
+    {
+        policy.WithOrigins(apiBase)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    }
+}));
 
 var app = builder.Build();
 
-// 5) Middleware de excepciones y HSTS
-if (app.Environment.IsDevelopment())
+// Pipeline
+if(app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();  // Mostrar excepciones completas en desarrollo
+    app.UseDeveloperExceptionPage();
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");  // Redirige a la acción Error en producción
-    app.UseHsts();  // HSTS en producción para mayor seguridad
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
 }
 
-// 6) Resto del pipeline
-app.UseHttpsRedirection();  // Redirige todo a HTTPS
-app.UseStaticFiles();  // Permite servir archivos estáticos
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
-app.UseRouting();  // Habilita el enrutamiento
+app.UseRouting();
+app.UseCors("AllowAPI");
 
-// 7) Middleware de autenticación y autorización
-app.UseAuthentication();  // Habilita la autenticación
-app.UseAuthorization();   // Habilita la autorización
+app.UseSession();
+app.UseAuthentication();
+app.UseAuthorization();
 
-// 8) Configuración de CORS
-app.UseCors("AllowWeb");  // Habilita CORS para el frontend
-
-// 9) Mapear rutas MVC
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}"  // Ruta predeterminada para los controladores MVC
-);
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

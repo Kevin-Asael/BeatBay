@@ -1,0 +1,46 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Códigos de Recuperación";
+    var recoveryCodes = ViewBag.RecoveryCodes as List<string> ?? new List<string>();
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark text-white shadow-sm">
+                <div class="card-header bg-secondary">
+                    <h4 class="mb-0">
+                        <i class="fas fa-key me-2"></i>Códigos de Recuperación
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p>Guarda estos códigos en un lugar seguro. Cada uno solo funciona una vez.</p>
+
+                    <ul class="list-group mb-4">
+                        @foreach (var code in recoveryCodes)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center bg-secondary text-monospace text-white">
+                                @code
+                                <button class="btn btn-sm btn-light" onclick="copyCode('@code')">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light" onclick="downloadCodes()">
+                            <i class="fas fa-download me-1"></i>Descargar
+                        </button>
+                        <button class="btn btn-light" onclick="printCodes()">
+                            <i class="fas fa-print me-1"></i>Imprimir
+                        </button>
+                        <a asp-action="TwoFactorSettings" class="btn btn-secondary ms-auto">
+                            <i class="fas fa-arrow-left me-1"></i>Volver
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
