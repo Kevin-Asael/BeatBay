@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BeatBay.DTOs
+namespace BeatBay.Model.DTOs
 {
     public class Disable2FADto
     {

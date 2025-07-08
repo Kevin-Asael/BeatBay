@@ -1,83 +1,146 @@
 ﻿@model BeatBay.DTOs.CreateUserDto
+
 @{
-    ViewData["Title"] = "Register - BeatBay";
+    ViewData["Title"] = "Register";
 }
 
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-900 via-teal-900 to-blue-900 py-12">
-    <div class="max-w-md w-full space-y-8 p-8 bg-white bg-opacity-10 backdrop-blur-lg rounded-xl shadow-2xl">
-        <div class="text-center">
-            <h2 class="text-4xl font-bold text-white mb-2">Join BeatBay</h2>
-            <p class="text-gray-300">Create your account and start your musical journey</p>
-        </div>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-success text-white text-center">
+                <h3><i class="fas fa-user-plus"></i> Join BeatBay</h3>
+                <p class="mb-0">Create your account and start listening!</p>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Register" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-        <form asp-action="Register" method="post" class="space-y-6">
-            @Html.AntiForgeryToken()
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input asp-for="UserName" class="form-control" id="floatingUserName" placeholder="Username" />
+                                <label for="floatingUserName"><i class="fas fa-user"></i> Username *</label>
+                                <span asp-validation-for="UserName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating mb-3">
+                                <input asp-for="Email" type="email" class="form-control" id="floatingEmail" placeholder="Email" />
+                                <label for="floatingEmail"><i class="fas fa-envelope"></i> Email *</label>
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
 
-            <div asp-validation-summary="ModelOnly" class="text-red-400 text-sm"></div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Password" />
+                        <label for="floatingPassword"><i class="fas fa-lock"></i> Password *</label>
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                        <div class="form-text">Password must be at least 6 characters long</div>
+                    </div>
 
-            <div class="space-y-4">
-                <div>
-                    <label asp-for="UserName" class="block text-sm font-medium text-gray-300 mb-2">Username *</label>
-                    <input asp-for="UserName"
-                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
-                           placeholder="Choose a unique username">
-                    <span asp-validation-for="UserName" class="text-red-400 text-sm"></span>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Name" class="form-control" id="floatingName" placeholder="Full Name" />
+                        <label for="floatingName"><i class="fas fa-id-card"></i> Full Name (Optional)</label>
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <textarea asp-for="Bio" class="form-control" id="floatingBio" placeholder="Bio" style="height: 100px"></textarea>
+                        <label for="floatingBio"><i class="fas fa-info-circle"></i> Bio (Optional)</label>
+                        <span asp-validation-for="Bio" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <select asp-for="PlanId" class="form-select" id="floatingPlan">
+                            <option value="">Select a Plan (Optional)</option>
+                            <option value="1">Free Plan - $0/month</option>
+                            <option value="2">Personal Plan - $1/month</option>
+                            <option value="3">Family Plan - $3.50/month</option>
+                            <option value="4">Business Plan - $35/month</option>
+                        </select>
+                        <label for="floatingPlan"><i class="fas fa-crown"></i> Subscription Plan</label>
+                        <span asp-validation-for="PlanId" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="termsCheck" required>
+                        <label class="form-check-label" for="termsCheck">
+                            I agree to the <a href="#" class="text-primary">Terms of Service</a> and <a href="#" class="text-primary">Privacy Policy</a> *
+                        </label>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <hr class="my-4">
+
+                <div class="text-center">
+                    <p class="mb-2">Already have an account?</p>
+                    <a asp-action="Login" class="btn btn-outline-primary">
+                        <i class="fas fa-sign-in-alt"></i> Login Here
+                    </a>
                 </div>
 
-                <div>
-                    <label asp-for="Email" class="block text-sm font-medium text-gray-300 mb-2">Email *</label>
-                    <input asp-for="Email" type="email"
-                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
-                           placeholder="your@email.com">
-                    <span asp-validation-for="Email" class="text-red-400 text-sm"></span>
-                </div>
-
-                <div>
-                    <label asp-for="Password" class="block text-sm font-medium text-gray-300 mb-2">Password *</label>
-                    <input asp-for="Password" type="password"
-                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
-                           placeholder="Minimum 6 characters">
-                    <span asp-validation-for="Password" class="text-red-400 text-sm"></span>
-                </div>
-
-                <div>
-                    <label asp-for="Name" class="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
-                    <input asp-for="Name"
-                           class="w-full px-4 py-3 bg-white bg-opacity-20 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
-                           placeholder="Your full name">
-                    <span asp-validation-for="Name" class="text-red-400 text-sm"></span>
-                </div>
-
-                <div>
-                    <label asp-for="Bio" class="block text-sm font-medium text-gray-300 mb-2">Bio</label>
-                    <textarea asp-for="Bio" rows="3"
-                              class="w-full px-4 py-3 bg-white bg-opacity-20 border border-gray-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 resize-none"
-                              placeholder="Tell us about yourself..."></textarea>
-                    <span asp-validation-for="Bio" class="text-red-400 text-sm"></span>
+                <div class="text-center mt-3">
+                    <p class="text-muted">
+                        <i class="fas fa-microphone"></i>
+                        Are you an artist? <a asp-action="RegisterArtist" class="text-warning">Register as Artist</a>
+                    </p>
                 </div>
             </div>
-
-            <div>
-                <button type="submit"
-                        class="w-full bg-gradient-to-r from-teal-600 to-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-teal-700 hover:to-green-700 transform hover:scale-105 transition duration-200 shadow-lg">
-                    Create Account
-                </button>
-            </div>
-
-            <div class="text-xs text-gray-400 text-center">
-                By creating an account, you agree to our Terms of Service and Privacy Policy.
-            </div>
-        </form>
-
-        <div class="text-center pt-6 border-t border-gray-600">
-            <p class="text-gray-300 text-sm mb-2">Already have an account?</p>
-            <a asp-action="Login"
-               class="text-teal-300 hover:text-teal-100 font-semibold transition duration-200">
-                Sign In
-            </a>
         </div>
     </div>
 </div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    .card-header {
+        border-radius: 15px 15px 0 0 !important;
+        padding: 25px;
+    }
+
+    .form-floating > label {
+        padding-left: 2.5rem;
+    }
+
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        padding-left: 2.5rem;
+    }
+
+    .form-floating > label i {
+        position: absolute;
+        left: -1.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .btn-lg {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+</style>
 
 @section Scripts {
     @{

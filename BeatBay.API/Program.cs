@@ -1,3 +1,7 @@
+ï»¿using BeatBay.API.Settings;
+using BeatBay.Data;
+using BeatBay.Model;
+using BeatBay.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -6,16 +10,13 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using BeatBay.Data;
-using BeatBay.Model;
-using BeatBay.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 1. Add services to the container.
 builder.Services.AddControllers();
 
-// 2. Swagger/OpenAPI Configuration con autenticación Bearer
+// 2. Swagger/OpenAPI Configuration con autenticaciï¿½n Bearer
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options => {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -44,20 +45,20 @@ builder.Services.AddSwaggerGen(options => {
 builder.Services.AddDbContext<BeatBayDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("BeatBayDbContext")));
 
-// 4. Configurar Identity con roles personalizados, confirmación de cuenta y soporte 2FA
+// 4. Configurar Identity con roles personalizados, confirmaciï¿½n de cuenta y soporte 2FA
 builder.Services.AddIdentity<User, Role>(options => {
     options.SignIn.RequireConfirmedAccount = true;
     options.User.RequireUniqueEmail = true;
     options.Tokens.AuthenticatorTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
 
-    // Configuración de contraseña
+    // Configuraciï¿½n de contraseï¿½a
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 6;
 
-    // Configuración de lockout
+    // Configuraciï¿½n de lockout
     options.Lockout.MaxFailedAccessAttempts = 5;
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(1);
     options.Lockout.AllowedForNewUsers = true;
@@ -70,7 +71,7 @@ builder.Services.AddTransient<IEmailSender, EmailService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<I2FAService, TwoFactorAuthService>();
 
-// 6. Configuración de autenticación JWT
+// 6. Configuraciï¿½n de autenticaciï¿½n JWT
 builder.Services.AddAuthentication(options => {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -92,7 +93,9 @@ builder.Services.AddAuthentication(options => {
     };
 });
 
-// 7. Configuración de CORS para permitir el acceso desde el frontend MVC
+builder.Services.Configure<AzureBlobStorageSettings>(builder.Configuration.GetSection("AzureBlobStorageSettings"));
+
+// 7. Configuraciï¿½n de CORS para permitir el acceso desde el frontend MVC
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowWeb",
         policy => policy
@@ -107,7 +110,7 @@ builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
-// 9. Configuración del middleware
+// 9. Configuraciï¿½n del middleware
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -119,7 +122,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Permitir servir archivos estáticos (ej. wwwroot)
+// Permitir servir archivos estï¿½ticos (ej. wwwroot)
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -127,7 +130,7 @@ app.UseRouting();
 // Aplicar CORS
 app.UseCors("AllowWeb");
 
-// Autenticación y autorización
+// Autenticaciï¿½n y autorizaciï¿½n
 app.UseAuthentication();
 app.UseAuthorization();
 

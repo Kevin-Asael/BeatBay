@@ -1,18 +1,19 @@
 ﻿using BeatBay.Data;
 using BeatBay.DTOs;
 using BeatBay.Model;
+using BeatBay.Model.DTOs;
 using BeatBay.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
-using System.ComponentModel.DataAnnotations;
 
 namespace BeatBay.Controllers
 {
@@ -216,7 +217,7 @@ El equipo de BeatBay";
 
         // **Habilitar 2FA Simple**
         [HttpPost("enable-2fa")]
-        [Authorize] // <- Este atributo faltaba
+        [Authorize]
         public async Task<IActionResult> EnableSimple2FA(Enable2FADto dto)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -233,19 +234,12 @@ El equipo de BeatBay";
             // Habilitar 2FA
             await _userManager.SetTwoFactorEnabledAsync(user, true);
 
-            // Generar códigos de recuperación
-            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-
-            return Ok(new
-            {
-                message = "Two-factor authentication enabled successfully",
-                recoveryCodes = recoveryCodes.ToList()
-            });
+            return Ok(new { message = "Two-factor authentication enabled successfully" });
         }
 
         // **Deshabilitar 2FA**
         [HttpPost("disable-2fa")]
-        [Authorize] // <- Este atributo también faltaba
+        [Authorize]
         public async Task<IActionResult> DisableSimple2FA(Disable2FADto dto)
         {
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -282,35 +276,6 @@ El equipo de BeatBay";
             await _twoFactorService.SendCodeByEmailAsync(user.Email, code);
 
             return Ok(new { message = "Verification code sent to your email." });
-        }
-
-        // **Generar Nuevos Códigos de Recuperación**
-        [HttpPost("generate-recovery-codes")]
-        [Authorize]
-        public async Task<IActionResult> GenerateRecoveryCodes([FromBody] string password)
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-
-            if (user == null)
-                return NotFound();
-
-            // Verificar contraseña
-            var passwordValid = await _userManager.CheckPasswordAsync(user, password);
-            if (!passwordValid)
-                return BadRequest(new { message = "Invalid password" });
-
-            // Verificar que 2FA esté habilitado
-            if (!await _userManager.GetTwoFactorEnabledAsync(user))
-                return BadRequest(new { message = "Two-factor authentication is not enabled" });
-
-            // Generar nuevos códigos
-            var recoveryCodes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
-
-            return Ok(new
-            {
-                recoveryCodes = recoveryCodes.ToList()
-            });
         }
 
         // **Registro de Artista**
@@ -608,14 +573,26 @@ El equipo de BeatBay";
                 return NotFound();
 
             var is2FAEnabled = await _userManager.GetTwoFactorEnabledAsync(user);
-            var recoveryCodesLeft = await _userManager.CountRecoveryCodesAsync(user);
 
             return Ok(new
             {
                 is2FAEnabled = is2FAEnabled,
-                recoveryCodesLeft = recoveryCodesLeft,
                 phoneNumber = user.PhoneNumber
             });
+        }
+        // Obtener roles del usuario actual
+        [HttpGet("user-roles")]
+        [Authorize]
+        public async Task<ActionResult<List<string>>> GetUserRoles()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (user == null)
+                return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(roles.ToList());
         }
     }
 }

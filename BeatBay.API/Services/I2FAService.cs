@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 namespace BeatBay.Services
-{ 
+{
     public interface I2FAService
     {
         Task<string> GenerateCodeAsync(int userId);

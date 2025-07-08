@@ -1,6 +1,7 @@
-﻿using System.Security.Cryptography;
+﻿using BeatBay.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Caching.Memory;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace BeatBay.Services
