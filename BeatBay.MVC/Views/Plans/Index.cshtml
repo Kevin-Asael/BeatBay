@@ -1,0 +1,229 @@
+﻿@model BeatBay.DTOs.UserPlanStatusDto
+@{
+    ViewData["Title"] = "Mis Planes";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">
+                <i class="fas fa-credit-card me-2"></i>
+                Gestión de Planes
+            </h2>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            @if (ViewBag.ErrorMessage != null)
+            {
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @ViewBag.ErrorMessage
+                </div>
+            }
+
+            <div class="row">
+                <!-- Estado actual del plan -->
+                <div class="col-md-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Estado Actual
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.HasPlan && Model.CurrentSubscription != null)
+                            {
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary">Plan Actual</h6>
+                                        <p class="h5 mb-2">@Model.CurrentSubscription.PlanName</p>
+                                        <p class="text-muted">$@Model.CurrentSubscription.PriceUSD USD</p>
+
+                                        <h6 class="text-primary mt-3">Conexiones</h6>
+                                        <p class="mb-1">
+                                            <span class="badge bg-info">
+                                                @Model.CurrentSubscription.UsedConnections/@Model.CurrentSubscription.MaxConnections
+                                            </span>
+                                            conexiones utilizadas
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary">Vigencia</h6>
+                                        <p class="mb-1">
+                                            <strong>Inicio:</strong> @Model.CurrentSubscription.StartDate.ToString("dd/MM/yyyy")
+                                        </p>
+                                        <p class="mb-1">
+                                            <strong>Vencimiento:</strong> @Model.CurrentSubscription.EndDate.ToString("dd/MM/yyyy")
+                                        </p>
+                                        <p class="mb-1">
+                                            <span class="badge @(Model.CurrentSubscription.IsActive ? "bg-success" : "bg-danger")">
+                                                @(Model.CurrentSubscription.IsActive ? "Activo" : "Inactivo")
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                @if (Model.CurrentSubscription.ConnectedUsers.Any())
+                                {
+                                    <hr>
+                                    <h6 class="text-primary">Usuarios Conectados</h6>
+                                    <div class="row">
+                                        @foreach (var user in Model.CurrentSubscription.ConnectedUsers)
+                                        {
+                                            <div class="col-md-6 mb-2">
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-user-circle me-2 text-secondary"></i>
+                                                    <span>@user.UserName</span>
+                                                    @if (!string.IsNullOrEmpty(user.Name))
+                                                    {
+                                                        <small class="text-muted ms-2">(@user.Name)</small>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center py-4">
+                                    <i class="fas fa-exclamation-triangle text-warning fa-3x mb-3"></i>
+                                    <h5 class="text-muted">No tienes un plan activo</h5>
+                                    <p class="text-muted">Adquiere un plan para disfrutar de todas las funcionalidades</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acciones rápidas -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-secondary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bolt me-2"></i>
+                                Acciones
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.CanPurchasePlan)
+                            {
+                                <a href="@Url.Action("Purchase")" class="btn btn-success btn-block mb-2">
+                                    <i class="fas fa-shopping-cart me-2"></i>
+                                    Comprar Plan
+                                </a>
+                            }
+
+                            @if (Model.HasPlan && Model.CurrentSubscription != null)
+                            {
+                                <a href="@Url.Action("Change")" class="btn btn-warning btn-block mb-2">
+                                    <i class="fas fa-exchange-alt me-2"></i>
+                                    Cambiar Plan
+                                </a>
+
+                                @if (Model.CurrentSubscription.MaxConnections > 1)
+                                {
+                                    <a href="@Url.Action("ManageConnections")" class="btn btn-info btn-block mb-2">
+                                        <i class="fas fa-users me-2"></i>
+                                        Gestionar Conexiones
+                                    </a>
+                                }
+
+                                <hr>
+                                <form method="post" action="@Url.Action("Cancel")"
+                                      onsubmit="return confirm('¿Estás seguro de que quieres cancelar tu suscripción?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-block">
+                                        <i class="fas fa-times me-2"></i>
+                                        Cancelar Suscripción
+                                    </button>
+                                </form>
+                            }
+
+                            <hr>
+                            <a href="@Url.Action("History")" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-history me-2"></i>
+                                Ver Historial
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Planes disponibles -->
+            @if (Model.AvailablePlans.Any())
+            {
+                <div class="card mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-th-large me-2"></i>
+                            Planes Disponibles
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @foreach (var plan in Model.AvailablePlans)
+                            {
+                                <div class="col-md-3 mb-3">
+                                    <div class="card h-100 @(Model.CurrentSubscription?.PlanId == plan.Id ? "border-primary" : "")">
+                                        <div class="card-body text-center">
+                                            @if (Model.CurrentSubscription?.PlanId == plan.Id)
+                                            {
+                                                <div class="badge bg-primary mb-2">Plan Actual</div>
+                                            }
+                                            <h5 class="card-title">@plan.Name</h5>
+                                            <h3 class="text-primary">$@plan.PriceUSD</h3>
+                                            <p class="text-muted small">USD/mes</p>
+                                            <p class="card-text">
+                                                <i class="fas fa-users me-1"></i>
+                                                @plan.MaxConnections conexión@(plan.MaxConnections > 1 ? "es" : "")
+                                            </p>
+                                            <p class="text-muted small">@plan.UserCount usuarios activos</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-block {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .card-header {
+        font-weight: 600;
+    }
+
+    .badge {
+        font-size: 0.875em;
+    }
+</style>
