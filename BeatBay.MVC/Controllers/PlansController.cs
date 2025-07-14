@@ -20,7 +20,7 @@ namespace BeatBay.MVC.Controllers
 
         private void SetAuthorizationHeader()
         {
-            var token = HttpContext.Session.GetString("JWTToken");
+            var token = HttpContext.Session.GetString("JwtToken");
             if (!string.IsNullOrEmpty(token))
             {
                 _httpClient.DefaultRequestHeaders.Authorization =
@@ -38,7 +38,7 @@ namespace BeatBay.MVC.Controllers
                 var apiUrl = _configuration["ApiSettings:BaseUrl"];
 
                 // Obtener estado actual del usuario
-                var response = await _httpClient.GetAsync($"{apiUrl}/api/PlansSimulation/my-plan-status");
+                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/my-plan-status");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -68,7 +68,7 @@ namespace BeatBay.MVC.Controllers
                 SetAuthorizationHeader();
                 var apiUrl = _configuration["ApiSettings:BaseUrl"];
 
-                var response = await _httpClient.GetAsync($"{apiUrl}/api/PlansSimulation/my-plan-status");
+                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/my-plan-status");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -110,7 +110,7 @@ namespace BeatBay.MVC.Controllers
                 var json = JsonConvert.SerializeObject(purchaseDto);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/api/PlansSimulation/purchase", content);
+                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/purchase", content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -141,7 +141,7 @@ namespace BeatBay.MVC.Controllers
                 SetAuthorizationHeader();
                 var apiUrl = _configuration["ApiSettings:BaseUrl"];
 
-                var response = await _httpClient.GetAsync($"{apiUrl}/api/PlansSimulation/my-plan-status");
+                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/my-plan-status");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -183,7 +183,7 @@ namespace BeatBay.MVC.Controllers
                 var json = JsonConvert.SerializeObject(changeDto);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/api/PlansSimulation/change", content);
+                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/change", content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -214,7 +214,7 @@ namespace BeatBay.MVC.Controllers
                 SetAuthorizationHeader();
                 var apiUrl = _configuration["ApiSettings:BaseUrl"];
 
-                var response = await _httpClient.GetAsync($"{apiUrl}/api/PlansSimulation/my-plan-status");
+                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/my-plan-status");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -262,7 +262,7 @@ namespace BeatBay.MVC.Controllers
                 var json = JsonConvert.SerializeObject(addDto);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/api/PlansSimulation/add-connection", content);
+                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/add-connection", content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -298,7 +298,7 @@ namespace BeatBay.MVC.Controllers
                 var json = JsonConvert.SerializeObject(removeDto);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/api/PlansSimulation/remove-connection", content);
+                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/remove-connection", content);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -330,7 +330,7 @@ namespace BeatBay.MVC.Controllers
                 SetAuthorizationHeader();
                 var apiUrl = _configuration["ApiSettings:BaseUrl"];
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/api/PlansSimulation/cancel", null);
+                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/cancel", null);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -361,7 +361,7 @@ namespace BeatBay.MVC.Controllers
                 SetAuthorizationHeader();
                 var apiUrl = _configuration["ApiSettings:BaseUrl"];
 
-                var response = await _httpClient.GetAsync($"{apiUrl}/api/PlansSimulation/history");
+                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/history");
 
                 if (response.IsSuccessStatusCode)
                 {
