@@ -1,30 +1,58 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using BeatBay.DTOs;
+using BeatBay.APIConsumer;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Net.Http.Headers;
 using System.Text;
-using BeatBay.DTOs;
-using System.Security.Claims;
 
 namespace BeatBay.MVC.Controllers
 {
     public class PlansController : Controller
     {
-        private readonly HttpClient _httpClient;
         private readonly IConfiguration _configuration;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _apiBaseUrl;
 
-        public PlansController(HttpClient httpClient, IConfiguration configuration)
+        public PlansController(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClient;
             _configuration = configuration;
+            _httpClientFactory = httpClientFactory;
+            _apiBaseUrl = _configuration["ApiSettings:BaseUrl"];
         }
 
-        private void SetAuthorizationHeader()
+        private void ConfigureCrud()
         {
             var token = HttpContext.Session.GetString("JwtToken");
-            if (!string.IsNullOrEmpty(token))
+            Crud<UserPlanStatusDto>.AuthToken = token;
+            Crud<UserPlanStatusDto>.EndPoint = $"{_apiBaseUrl}/PlanSimulation";
+        }
+
+        private bool IsSessionValid()
+        {
+            var token = HttpContext.Session.GetString("JwtToken");
+            return !string.IsNullOrEmpty(token);
+        }
+
+        private IActionResult HandleUnauthorized()
+        {
+            HttpContext.Session.Remove("JwtToken");
+            TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+            return RedirectToAction("Login", "vAuth");
+        }
+
+        private async Task<T> ExecuteApiCall<T>(Func<Task<T>> apiCall) where T : class, new()
+        {
+            try
             {
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                return await apiCall();
+            }
+            catch (HttpRequestException ex) when (ex.Message.Contains("401"))
+            {
+                throw new UnauthorizedAccessException();
+            }
+            catch (TaskCanceledException)
+            {
+                throw new TimeoutException("La conexión tardó demasiado. Por favor, intenta nuevamente.");
             }
         }
 
@@ -32,25 +60,64 @@ namespace BeatBay.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
-                // Obtener estado actual del usuario
-                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/my-plan-status");
+                // Usar el CRUD para obtener el estado del plan
+                var planStatus = await Task.Run(() =>
+                {
+                    // Configurar endpoint específico para esta llamada
+                    var originalEndpoint = Crud<UserPlanStatusDto>.EndPoint;
+                    Crud<UserPlanStatusDto>.EndPoint = $"{_apiBaseUrl}/PlanSimulation/my-plan-status";
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var planStatus = JsonConvert.DeserializeObject<UserPlanStatusDto>(content);
-                    return View(planStatus);
-                }
-                else
-                {
-                    ViewBag.ErrorMessage = "Error al obtener información de planes";
-                    return View(new UserPlanStatusDto());
-                }
+                    try
+                    {
+                        // Simular GetByEndpoint ya que no existe, usamos una llamada personalizada
+                        using var client = new HttpClient();
+                        if (!string.IsNullOrEmpty(Crud<UserPlanStatusDto>.AuthToken))
+                        {
+                            client.DefaultRequestHeaders.Authorization =
+                                new AuthenticationHeaderValue("Bearer", Crud<UserPlanStatusDto>.AuthToken);
+                        }
+
+                        var response = client.GetAsync(Crud<UserPlanStatusDto>.EndPoint).Result;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var json = response.Content.ReadAsStringAsync().Result;
+                            return JsonConvert.DeserializeObject<UserPlanStatusDto>(json);
+                        }
+                        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            throw new UnauthorizedAccessException();
+                        }
+                        else
+                        {
+                            throw new Exception($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+                        }
+                    }
+                    finally
+                    {
+                        Crud<UserPlanStatusDto>.EndPoint = originalEndpoint;
+                    }
+                });
+
+                return View(planStatus);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                ViewBag.ErrorMessage = ex.Message;
+                return View(new UserPlanStatusDto());
             }
             catch (Exception ex)
             {
@@ -63,31 +130,34 @@ namespace BeatBay.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Purchase()
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
-                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/my-plan-status");
+                var planStatus = await GetPlanStatus();
 
-                if (response.IsSuccessStatusCode)
+                if (!planStatus.CanPurchasePlan)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var planStatus = JsonConvert.DeserializeObject<UserPlanStatusDto>(content);
-
-                    if (!planStatus.CanPurchasePlan)
-                    {
-                        TempData["ErrorMessage"] = planStatus.ReasonCannotPurchase;
-                        return RedirectToAction("Index");
-                    }
-
-                    return View(planStatus);
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "Error al obtener información de planes";
+                    TempData["ErrorMessage"] = planStatus.ReasonCannotPurchase;
                     return RedirectToAction("Index");
                 }
+
+                return View(planStatus);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
@@ -101,33 +171,52 @@ namespace BeatBay.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Purchase(int planId)
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
                 var purchaseDto = new PurchasePlanDto { PlanId = planId };
-                var json = JsonConvert.SerializeObject(purchaseDto);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/purchase", content);
+                // Usar el CRUD para crear/enviar la compra
+                var result = await Task.Run(() =>
+                {
+                    var originalEndpoint = Crud<PurchasePlanDto>.EndPoint;
+                    Crud<PurchasePlanDto>.AuthToken = Crud<UserPlanStatusDto>.AuthToken;
+                    Crud<PurchasePlanDto>.EndPoint = $"{_apiBaseUrl}/PlanSimulation/purchase";
 
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["SuccessMessage"] = "¡Plan comprado exitosamente!";
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    var errorResponse = JsonConvert.DeserializeObject<dynamic>(errorContent);
-                    TempData["ErrorMessage"] = errorResponse?.message ?? "Error al procesar la compra";
-                    return RedirectToAction("Purchase");
-                }
+                    try
+                    {
+                        return Crud<PurchasePlanDto>.Create(purchaseDto);
+                    }
+                    finally
+                    {
+                        Crud<PurchasePlanDto>.EndPoint = originalEndpoint;
+                    }
+                });
+
+                TempData["SuccessMessage"] = "¡Plan comprado exitosamente!";
+                return RedirectToAction("Index");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Purchase");
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                // Extraer mensaje de error si es posible
+                var errorMessage = ExtractErrorMessage(ex.Message);
+                TempData["ErrorMessage"] = errorMessage ?? "Error al comprar el plan";
                 return RedirectToAction("Purchase");
             }
         }
@@ -136,31 +225,34 @@ namespace BeatBay.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> Change()
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
-                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/my-plan-status");
+                var planStatus = await GetPlanStatus();
 
-                if (response.IsSuccessStatusCode)
+                if (!planStatus.HasPlan)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var planStatus = JsonConvert.DeserializeObject<UserPlanStatusDto>(content);
-
-                    if (!planStatus.HasPlan)
-                    {
-                        TempData["ErrorMessage"] = "No tienes un plan activo para cambiar";
-                        return RedirectToAction("Index");
-                    }
-
-                    return View(planStatus);
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "Error al obtener información de planes";
+                    TempData["ErrorMessage"] = "No tienes un plan activo para cambiar";
                     return RedirectToAction("Index");
                 }
+
+                return View(planStatus);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
@@ -174,33 +266,50 @@ namespace BeatBay.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Change(int newPlanId)
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
                 var changeDto = new ChangePlanDto { NewPlanId = newPlanId };
-                var json = JsonConvert.SerializeObject(changeDto);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/change", content);
+                var result = await Task.Run(() =>
+                {
+                    var originalEndpoint = Crud<ChangePlanDto>.EndPoint;
+                    Crud<ChangePlanDto>.AuthToken = Crud<UserPlanStatusDto>.AuthToken;
+                    Crud<ChangePlanDto>.EndPoint = $"{_apiBaseUrl}/PlanSimulation/change";
 
-                if (response.IsSuccessStatusCode)
-                {
-                    TempData["SuccessMessage"] = "¡Plan cambiado exitosamente!";
-                    return RedirectToAction("Index");
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    var errorResponse = JsonConvert.DeserializeObject<dynamic>(errorContent);
-                    TempData["ErrorMessage"] = errorResponse?.message ?? "Error al cambiar el plan";
-                    return RedirectToAction("Change");
-                }
+                    try
+                    {
+                        return Crud<ChangePlanDto>.Create(changeDto);
+                    }
+                    finally
+                    {
+                        Crud<ChangePlanDto>.EndPoint = originalEndpoint;
+                    }
+                });
+
+                TempData["SuccessMessage"] = "¡Plan cambiado exitosamente!";
+                return RedirectToAction("Index");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Change");
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                var errorMessage = ExtractErrorMessage(ex.Message);
+                TempData["ErrorMessage"] = errorMessage ?? "Error al cambiar el plan";
                 return RedirectToAction("Change");
             }
         }
@@ -209,37 +318,40 @@ namespace BeatBay.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> ManageConnections()
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
-                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/my-plan-status");
+                var planStatus = await GetPlanStatus();
 
-                if (response.IsSuccessStatusCode)
+                if (!planStatus.HasPlan)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var planStatus = JsonConvert.DeserializeObject<UserPlanStatusDto>(content);
-
-                    if (!planStatus.HasPlan)
-                    {
-                        TempData["ErrorMessage"] = "No tienes un plan activo";
-                        return RedirectToAction("Index");
-                    }
-
-                    if (planStatus.CurrentSubscription.MaxConnections <= 1)
-                    {
-                        TempData["ErrorMessage"] = "Tu plan no permite conexiones adicionales";
-                        return RedirectToAction("Index");
-                    }
-
-                    return View(planStatus);
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "Error al obtener información de planes";
+                    TempData["ErrorMessage"] = "No tienes un plan activo";
                     return RedirectToAction("Index");
                 }
+
+                if (planStatus.CurrentSubscription.MaxConnections <= 1)
+                {
+                    TempData["ErrorMessage"] = "Tu plan no permite conexiones adicionales";
+                    return RedirectToAction("Index");
+                }
+
+                return View(planStatus);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
@@ -253,33 +365,50 @@ namespace BeatBay.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddConnection(int childUserId)
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
                 var addDto = new AddConnectionDto { ChildUserId = childUserId };
-                var json = JsonConvert.SerializeObject(addDto);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/add-connection", content);
-
-                if (response.IsSuccessStatusCode)
+                var result = await Task.Run(() =>
                 {
-                    TempData["SuccessMessage"] = "Usuario agregado exitosamente al plan";
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    var errorResponse = JsonConvert.DeserializeObject<dynamic>(errorContent);
-                    TempData["ErrorMessage"] = errorResponse?.message ?? "Error al agregar usuario";
-                }
+                    var originalEndpoint = Crud<AddConnectionDto>.EndPoint;
+                    Crud<AddConnectionDto>.AuthToken = Crud<UserPlanStatusDto>.AuthToken;
+                    Crud<AddConnectionDto>.EndPoint = $"{_apiBaseUrl}/PlanSimulation/add-connection";
 
+                    try
+                    {
+                        return Crud<AddConnectionDto>.Create(addDto);
+                    }
+                    finally
+                    {
+                        Crud<AddConnectionDto>.EndPoint = originalEndpoint;
+                    }
+                });
+
+                TempData["SuccessMessage"] = "Usuario agregado exitosamente al plan";
+                return RedirectToAction("ManageConnections");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction("ManageConnections");
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                var errorMessage = ExtractErrorMessage(ex.Message);
+                TempData["ErrorMessage"] = errorMessage ?? "Error al agregar usuario";
                 return RedirectToAction("ManageConnections");
             }
         }
@@ -289,33 +418,50 @@ namespace BeatBay.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveConnection(int childUserId)
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
                 var removeDto = new RemoveConnectionDto { ChildUserId = childUserId };
-                var json = JsonConvert.SerializeObject(removeDto);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/remove-connection", content);
-
-                if (response.IsSuccessStatusCode)
+                var result = await Task.Run(() =>
                 {
-                    TempData["SuccessMessage"] = "Usuario removido exitosamente del plan";
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    var errorResponse = JsonConvert.DeserializeObject<dynamic>(errorContent);
-                    TempData["ErrorMessage"] = errorResponse?.message ?? "Error al remover usuario";
-                }
+                    var originalEndpoint = Crud<RemoveConnectionDto>.EndPoint;
+                    Crud<RemoveConnectionDto>.AuthToken = Crud<UserPlanStatusDto>.AuthToken;
+                    Crud<RemoveConnectionDto>.EndPoint = $"{_apiBaseUrl}/PlanSimulation/remove-connection";
 
+                    try
+                    {
+                        return Crud<RemoveConnectionDto>.Create(removeDto);
+                    }
+                    finally
+                    {
+                        Crud<RemoveConnectionDto>.EndPoint = originalEndpoint;
+                    }
+                });
+
+                TempData["SuccessMessage"] = "Usuario removido exitosamente del plan";
+                return RedirectToAction("ManageConnections");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction("ManageConnections");
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                var errorMessage = ExtractErrorMessage(ex.Message);
+                TempData["ErrorMessage"] = errorMessage ?? "Error al remover usuario";
                 return RedirectToAction("ManageConnections");
             }
         }
@@ -325,29 +471,57 @@ namespace BeatBay.MVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel()
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
-                var response = await _httpClient.PostAsync($"{apiUrl}/PlanSimulation/cancel", null);
-
-                if (response.IsSuccessStatusCode)
+                var result = await Task.Run(() =>
                 {
-                    TempData["SuccessMessage"] = "Suscripción cancelada exitosamente";
-                }
-                else
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    var errorResponse = JsonConvert.DeserializeObject<dynamic>(errorContent);
-                    TempData["ErrorMessage"] = errorResponse?.message ?? "Error al cancelar suscripción";
-                }
+                    // Usar una llamada personalizada ya que es POST sin cuerpo
+                    using var client = new HttpClient();
+                    if (!string.IsNullOrEmpty(Crud<UserPlanStatusDto>.AuthToken))
+                    {
+                        client.DefaultRequestHeaders.Authorization =
+                            new AuthenticationHeaderValue("Bearer", Crud<UserPlanStatusDto>.AuthToken);
+                    }
 
+                    var response = client.PostAsync($"{_apiBaseUrl}/PlanSimulation/cancel", null).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return true;
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        throw new UnauthorizedAccessException();
+                    }
+                    else
+                    {
+                        throw new Exception($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+                    }
+                });
+
+                TempData["SuccessMessage"] = "Suscripción cancelada exitosamente";
+                return RedirectToAction("Index");
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Error: {ex.Message}";
+                var errorMessage = ExtractErrorMessage(ex.Message);
+                TempData["ErrorMessage"] = errorMessage ?? "Error al cancelar suscripción";
                 return RedirectToAction("Index");
             }
         }
@@ -356,30 +530,133 @@ namespace BeatBay.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> History()
         {
+            if (!IsSessionValid())
+            {
+                TempData["ErrorMessage"] = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
+                return RedirectToAction("Login", "vAuth");
+            }
+
             try
             {
-                SetAuthorizationHeader();
-                var apiUrl = _configuration["ApiSettings:BaseUrl"];
+                ConfigureCrud();
 
-                var response = await _httpClient.GetAsync($"{apiUrl}/PlanSimulation/history");
+                var history = await Task.Run(() =>
+                {
+                    var originalEndpoint = Crud<List<PlanSubscriptionDto>>.EndPoint;
+                    Crud<List<PlanSubscriptionDto>>.AuthToken = Crud<UserPlanStatusDto>.AuthToken;
+                    Crud<List<PlanSubscriptionDto>>.EndPoint = $"{_apiBaseUrl}/PlanSimulation/history";
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var history = JsonConvert.DeserializeObject<List<PlanSubscriptionDto>>(content);
-                    return View(history);
-                }
-                else
-                {
-                    ViewBag.ErrorMessage = "Error al obtener historial de suscripciones";
-                    return View(new List<PlanSubscriptionDto>());
-                }
+                    try
+                    {
+                        // Usar una llamada personalizada para obtener lista
+                        using var client = new HttpClient();
+                        if (!string.IsNullOrEmpty(Crud<List<PlanSubscriptionDto>>.AuthToken))
+                        {
+                            client.DefaultRequestHeaders.Authorization =
+                                new AuthenticationHeaderValue("Bearer", Crud<List<PlanSubscriptionDto>>.AuthToken);
+                        }
+
+                        var response = client.GetAsync(Crud<List<PlanSubscriptionDto>>.EndPoint).Result;
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var json = response.Content.ReadAsStringAsync().Result;
+                            return JsonConvert.DeserializeObject<List<PlanSubscriptionDto>>(json);
+                        }
+                        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                        {
+                            throw new UnauthorizedAccessException();
+                        }
+                        else
+                        {
+                            throw new Exception($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+                        }
+                    }
+                    finally
+                    {
+                        Crud<List<PlanSubscriptionDto>>.EndPoint = originalEndpoint;
+                    }
+                });
+
+                return View(history ?? new List<PlanSubscriptionDto>());
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return HandleUnauthorized();
+            }
+            catch (TimeoutException ex)
+            {
+                ViewBag.ErrorMessage = ex.Message;
+                return View(new List<PlanSubscriptionDto>());
             }
             catch (Exception ex)
             {
                 ViewBag.ErrorMessage = $"Error: {ex.Message}";
                 return View(new List<PlanSubscriptionDto>());
             }
+        }
+
+        // Métodos auxiliares
+        private async Task<UserPlanStatusDto> GetPlanStatus()
+        {
+            return await Task.Run(() =>
+            {
+                var originalEndpoint = Crud<UserPlanStatusDto>.EndPoint;
+                Crud<UserPlanStatusDto>.EndPoint = $"{_apiBaseUrl}/PlanSimulation/my-plan-status";
+
+                try
+                {
+                    using var client = new HttpClient();
+                    if (!string.IsNullOrEmpty(Crud<UserPlanStatusDto>.AuthToken))
+                    {
+                        client.DefaultRequestHeaders.Authorization =
+                            new AuthenticationHeaderValue("Bearer", Crud<UserPlanStatusDto>.AuthToken);
+                    }
+
+                    var response = client.GetAsync(Crud<UserPlanStatusDto>.EndPoint).Result;
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var json = response.Content.ReadAsStringAsync().Result;
+                        return JsonConvert.DeserializeObject<UserPlanStatusDto>(json);
+                    }
+                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        throw new UnauthorizedAccessException();
+                    }
+                    else
+                    {
+                        throw new Exception($"Error: {response.StatusCode} - {response.ReasonPhrase}");
+                    }
+                }
+                finally
+                {
+                    Crud<UserPlanStatusDto>.EndPoint = originalEndpoint;
+                }
+            });
+        }
+
+        private string ExtractErrorMessage(string exceptionMessage)
+        {
+            try
+            {
+                // Intenta extraer el mensaje JSON de error si está presente
+                var startIndex = exceptionMessage.IndexOf("{");
+                if (startIndex >= 0)
+                {
+                    var jsonPart = exceptionMessage.Substring(startIndex);
+                    var endIndex = jsonPart.LastIndexOf("}") + 1;
+                    if (endIndex > 0)
+                    {
+                        jsonPart = jsonPart.Substring(0, endIndex);
+                        var errorResponse = JsonConvert.DeserializeObject<dynamic>(jsonPart);
+                        return errorResponse?.message?.ToString();
+                    }
+                }
+            }
+            catch
+            {
+                // Si no se puede parsear, devolver null
+            }
+            return null;
         }
     }
 }
