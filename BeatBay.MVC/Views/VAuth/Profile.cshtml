@@ -318,6 +318,31 @@
                 </div>
             </div>
         </div>
+
+        <div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-shield-alt"></i> Security Settings
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Two-Factor Authentication</h6>
+                        <p class="text-muted small mb-0">Add an extra layer of security to your account</p>
+                    </div>
+                    <div>
+                        <div id="twoFactorStatus">
+                            <!-- Status will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     </div>
 
     <!-- Edit Profile Modal -->
@@ -635,6 +660,28 @@
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+    check2FAStatus();
+});
+
+function check2FAStatus() {
+    fetch('/VAuth/Get2FAStatus')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const statusHtml = data.is2FAEnabled ? 
+                    `<button type="button" class="btn btn-danger" onclick="window.location.href='/VAuth/TwoFactorSettings'">
+                        <i class="fas fa-shield-alt"></i> Manage 2FA
+                    </button>` :
+                    `<button type="button" class="btn btn-primary" onclick="window.location.href='/VAuth/TwoFactorSettings'">
+                        <i class="fas fa-shield-alt"></i> Enable 2FA
+                    </button>`;
+                document.getElementById('twoFactorStatus').innerHTML = statusHtml;
+            }
+        })
+        .catch(error => console.error('Error checking 2FA status:', error));
+}
     </script>
 </body>
 </html>
