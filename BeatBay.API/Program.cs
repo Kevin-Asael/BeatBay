@@ -1,4 +1,5 @@
-﻿using BeatBay.API.Settings;
+﻿using BeatBay.API.Services;
+using BeatBay.API.Settings;
 using BeatBay.Data;
 using BeatBay.Model;
 using BeatBay.Services;
@@ -107,6 +108,8 @@ builder.Services.AddCors(options => {
 // 8. Agregar servicios adicionales
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
+builder.Services.AddScoped<PdfReportService>();
+
 
 var app = builder.Build();
 

@@ -1,4 +1,5 @@
 ﻿@model BeatBay.DTOs.Enable2FADto
+@Html.AntiForgeryToken()
 @{
     ViewData["Title"] = "Two-Factor Authentication Settings";
     bool is2FAEnabled = ViewBag.Is2FAEnabled ?? false;
@@ -362,7 +363,7 @@
             }
         }
 
-        // Función para deshabilitar 2FA
+                // Modify the disable2FA function in the JavaScript section
         async function disable2FA() {
             const password = document.getElementById('disablePassword').value;
             const passwordInput = document.getElementById('disablePassword');
@@ -377,14 +378,27 @@
             setButtonLoading('disableBtn', true);
 
             try {
+                // Get the anti-forgery token
+                const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
                 const response = await fetch('@Url.Action("Disable2FA", "VAuth")', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        'RequestVerificationToken': antiforgeryToken,
+                        'Authorization': 'Bearer ' + (sessionStorage.getItem('JwtToken') || '')
                     },
                     body: JSON.stringify({ password: password })
                 });
+
+                if (!response.ok) {
+                    // Handle non-200 responses
+                    if (response.status === 401) {
+                        showAlert('Session expired. Please login again.', 'danger');
+                        window.location.href = '@Url.Action("Login", "VAuth")';
+                        return;
+                    }
+                }
 
                 const result = await response.json();
 
@@ -394,11 +408,11 @@
                     bootstrap.Modal.getInstance(document.getElementById('disable2FAModal')).hide();
                     document.getElementById('disable2FAForm').reset();
                 } else {
-                    showAlert(result.message, 'danger');
+                    showAlert(result.message || 'Failed to disable 2FA', 'danger');
                 }
             } catch (error) {
-                showAlert('An error occurred while disabling 2FA. Please try again.', 'danger');
                 console.error('Error disabling 2FA:', error);
+                showAlert('An error occurred while disabling 2FA. Please try again.', 'danger');
             } finally {
                 setButtonLoading('disableBtn', false);
             }

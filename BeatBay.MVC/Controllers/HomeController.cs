@@ -33,6 +33,14 @@ namespace BeatBayMVC.Controllers
             return View();
         }
 
+        public IActionResult IndexArtista()
+        {
+            return View();
+        }
+        public IActionResult IndexAdmin()
+        {
+            return View();
+        }
         public IActionResult Privacy()
         {
             return View();
