@@ -109,6 +109,7 @@ builder.Services.AddCors(options => {
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<PdfReportService>();
+builder.Services.AddScoped<PayPalService>();
 
 
 var app = builder.Build();
