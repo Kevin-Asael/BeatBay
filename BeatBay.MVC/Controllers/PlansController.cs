@@ -1,12 +1,13 @@
 ﻿using BeatBay.DTOs;
+using BeatBay.APIConsumer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
@@ -21,6 +22,9 @@ namespace BeatBay.MVC.Controllers
         {
             _httpClientFactory = httpClientFactory;
             _apiBaseUrl = config["ApiSettings:BaseUrl"].TrimEnd('/');
+
+            // Configurar endpoint para Crud<UserDto>
+            Crud<UserDto>.EndPoint = $"{_apiBaseUrl}/api/Users";
         }
 
         private HttpClient CreateClient()
@@ -29,7 +33,11 @@ namespace BeatBay.MVC.Controllers
             client.BaseAddress = new Uri(_apiBaseUrl);
             var token = HttpContext.Session.GetString("JwtToken");
             if (!string.IsNullOrEmpty(token))
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            {
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+                Crud<UserDto>.AuthToken = token;
+            }
             return client;
         }
 
@@ -66,8 +74,8 @@ namespace BeatBay.MVC.Controllers
                 var resp = await client.GetAsync("api/PlanSimulation/my-plan-status");
                 if (resp.StatusCode == HttpStatusCode.Unauthorized)
                     return HandleUnauthorized();
-
                 resp.EnsureSuccessStatusCode();
+
                 var model = JsonConvert.DeserializeObject<UserPlanStatusDto>(
                     await resp.Content.ReadAsStringAsync());
                 return View(model);
@@ -92,23 +100,21 @@ namespace BeatBay.MVC.Controllers
                 var resp = await client.GetAsync("api/PlanSimulation/my-plan-status");
                 if (resp.StatusCode == HttpStatusCode.Unauthorized)
                     return HandleUnauthorized();
-
                 resp.EnsureSuccessStatusCode();
+
                 var model = JsonConvert.DeserializeObject<UserPlanStatusDto>(
                     await resp.Content.ReadAsStringAsync());
-
                 if (!model.CanPurchasePlan)
                 {
                     TempData["ErrorMessage"] = model.ReasonCannotPurchase;
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
-
                 return View(model);
             }
             catch
             {
                 TempData["ErrorMessage"] = "Error al obtener los planes.";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -120,13 +126,12 @@ namespace BeatBay.MVC.Controllers
                 return RedirectToAction("Login", "vAuth");
 
             var client = CreateClient();
-
             var returnUrl = Url.Action(nameof(ExecutePayment), "Plans", null, Request.Scheme);
             var cancelUrl = Url.Action(nameof(Cancel), "Plans", null, Request.Scheme);
 
             var dto = new PurchasePlanDto
             {
-                PlanId    = planId,
+                PlanId = planId,
                 ReturnUrl = returnUrl,
                 CancelUrl = cancelUrl
             };
@@ -134,17 +139,15 @@ namespace BeatBay.MVC.Controllers
             var resp = await client.PostAsJsonAsync("api/PlanSimulation/purchase", dto);
             if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 return HandleUnauthorized();
-
             if (!resp.IsSuccessStatusCode)
             {
                 var err = await resp.Content.ReadAsStringAsync();
                 TempData["ErrorMessage"] = ExtractErrorMessage(err) ?? "Error al iniciar compra.";
-                return RedirectToAction("Purchase");
+                return RedirectToAction(nameof(Purchase));
             }
 
             var wrapper = JsonConvert.DeserializeObject<PurchasePlanResponseDto>(
                 await resp.Content.ReadAsStringAsync());
-
             return Redirect(wrapper.ApprovalUrl);
         }
 
@@ -160,7 +163,6 @@ namespace BeatBay.MVC.Controllers
             var resp = await client.GetAsync(url);
             if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 return HandleUnauthorized();
-
             if (!resp.IsSuccessStatusCode)
                 TempData["ErrorMessage"] = "No se pudo procesar el pago.";
             else
@@ -169,7 +171,7 @@ namespace BeatBay.MVC.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 5. GET /Plans/Cancel  ← PayPal cancela aquí
+        // 5. GET /Plans/Cancel
         [HttpGet]
         public IActionResult Cancel()
         {
@@ -190,23 +192,21 @@ namespace BeatBay.MVC.Controllers
                 var resp = await client.GetAsync("api/PlanSimulation/my-plan-status");
                 if (resp.StatusCode == HttpStatusCode.Unauthorized)
                     return HandleUnauthorized();
-
                 resp.EnsureSuccessStatusCode();
+
                 var model = JsonConvert.DeserializeObject<UserPlanStatusDto>(
                     await resp.Content.ReadAsStringAsync());
-
                 if (!model.HasPlan)
                 {
                     TempData["ErrorMessage"] = "No tienes un plan activo para cambiar.";
-                    return RedirectToAction("Index");
+                    return RedirectToAction(nameof(Index));
                 }
-
                 return View(model);
             }
             catch
             {
                 TempData["ErrorMessage"] = "Error al obtener el estado del plan.";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -219,20 +219,18 @@ namespace BeatBay.MVC.Controllers
 
             var client = CreateClient();
             var dto = new ChangePlanDto { NewPlanId = newPlanId };
-
             var resp = await client.PostAsJsonAsync("api/PlanSimulation/change", dto);
             if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 return HandleUnauthorized();
-
             if (!resp.IsSuccessStatusCode)
             {
                 var err = await resp.Content.ReadAsStringAsync();
                 TempData["ErrorMessage"] = ExtractErrorMessage(err) ?? "Error al cambiar de plan.";
-                return RedirectToAction("Change");
+                return RedirectToAction(nameof(Change));
             }
 
             TempData["SuccessMessage"] = "Plan cambiado exitosamente.";
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
         // 8. GET /Plans/ManageConnections
@@ -243,26 +241,26 @@ namespace BeatBay.MVC.Controllers
                 return RedirectToAction("Login", "vAuth");
 
             var client = CreateClient();
-            var resp = await client.GetAsync("api/PlanSimulation/my-plan-status");
-            if (resp.StatusCode == HttpStatusCode.Unauthorized)
+            var respPlan = await client.GetAsync("api/PlanSimulation/my-plan-status");
+            if (respPlan.StatusCode == HttpStatusCode.Unauthorized)
                 return HandleUnauthorized();
+            respPlan.EnsureSuccessStatusCode();
 
-            resp.EnsureSuccessStatusCode();
-            var model = JsonConvert.DeserializeObject<UserPlanStatusDto>(
-                await resp.Content.ReadAsStringAsync());
+            var planStatus = JsonConvert.DeserializeObject<UserPlanStatusDto>(
+                await respPlan.Content.ReadAsStringAsync());
 
-            if (!model.HasPlan)
+            if (!planStatus.HasPlan)
             {
                 TempData["ErrorMessage"] = "No tienes un plan activo.";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
-            if (model.CurrentSubscription.MaxConnections <= 1)
+            if (planStatus.CurrentSubscription.MaxConnections <= 1)
             {
                 TempData["ErrorMessage"] = "Tu plan no permite conexiones adicionales.";
-                return RedirectToAction("Index");
+                return RedirectToAction(nameof(Index));
             }
 
-            return View(model);
+            return View(planStatus);
         }
 
         // 9. POST /Plans/AddConnection
@@ -274,18 +272,22 @@ namespace BeatBay.MVC.Controllers
 
             var client = CreateClient();
             var dto = new AddConnectionDto { ChildUserId = childUserId };
-
             var resp = await client.PostAsJsonAsync("api/PlanSimulation/add-connection", dto);
+
             if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 return HandleUnauthorized();
 
             if (!resp.IsSuccessStatusCode)
-                TempData["ErrorMessage"] = ExtractErrorMessage(await resp.Content.ReadAsStringAsync()) 
-                                          ?? "Error al agregar conexión.";
+            {
+                var err = await resp.Content.ReadAsStringAsync();
+                TempData["ErrorMessage"] = ExtractErrorMessage(err) ?? "Error al agregar conexión.";
+            }
             else
-                TempData["SuccessMessage"] = "Usuario agregado exitosamente.";
+            {
+                TempData["SuccessMessage"] = $"Usuario ID {childUserId} agregado exitosamente.";
+            }
 
-            return RedirectToAction("ManageConnections");
+            return RedirectToAction(nameof(ManageConnections));
         }
 
         // 10. POST /Plans/RemoveConnection
@@ -297,21 +299,21 @@ namespace BeatBay.MVC.Controllers
 
             var client = CreateClient();
             var dto = new RemoveConnectionDto { ChildUserId = childUserId };
-
             var resp = await client.PostAsJsonAsync("api/PlanSimulation/remove-connection", dto);
+
             if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 return HandleUnauthorized();
 
             if (!resp.IsSuccessStatusCode)
-                TempData["ErrorMessage"] = ExtractErrorMessage(await resp.Content.ReadAsStringAsync()) 
+                TempData["ErrorMessage"] = ExtractErrorMessage(await resp.Content.ReadAsStringAsync())
                                           ?? "Error al remover conexión.";
             else
-                TempData["SuccessMessage"] = "Usuario removido exitosamente.";
+                TempData["SuccessMessage"] = $"Usuario ID {childUserId} removido exitosamente.";
 
-            return RedirectToAction("ManageConnections");
+            return RedirectToAction(nameof(ManageConnections));
         }
 
-        // 11. POST /Plans/Cancel  (cancela suscripción)
+        // 11. POST /Plans/Cancel (cancelar suscripción)
         [HttpPost, ActionName("Cancel"), ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelSubscription()
         {
@@ -320,6 +322,7 @@ namespace BeatBay.MVC.Controllers
 
             var client = CreateClient();
             var resp = await client.PostAsync("api/PlanSimulation/cancel", null);
+
             if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 return HandleUnauthorized();
 
@@ -328,7 +331,7 @@ namespace BeatBay.MVC.Controllers
             else
                 TempData["SuccessMessage"] = "Suscripción cancelada exitosamente.";
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
         // 12. GET /Plans/History
@@ -342,12 +345,11 @@ namespace BeatBay.MVC.Controllers
             var resp = await client.GetAsync("api/PlanSimulation/history");
             if (resp.StatusCode == HttpStatusCode.Unauthorized)
                 return HandleUnauthorized();
-
             resp.EnsureSuccessStatusCode();
+
             var list = JsonConvert.DeserializeObject<List<PlanSubscriptionDto>>(
                 await resp.Content.ReadAsStringAsync());
             return View(list);
         }
-
     }
 }

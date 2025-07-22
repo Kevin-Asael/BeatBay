@@ -33,98 +33,120 @@ namespace BeatBay.API.Controllers
         [HttpGet("my-plan-status")]
         public async Task<ActionResult<UserPlanStatusDto>> GetMyPlanStatus()
         {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null) return NotFound();
-
-            var roles = await _userManager.GetRolesAsync(user);
-            var canPurchase = !roles.Contains("Admin") && !roles.Contains("Artist");
-            string reasonCannotPurchase = "";
-
-            if (!canPurchase)
-                reasonCannotPurchase = roles.Contains("Admin")
-                    ? "Los administradores no pueden comprar planes"
-                    : "Los artistas no pueden comprar planes";
-
-            // Suscripción activa
-            var activeSub = await _context.PlanSubscriptions
-                .Include(ps => ps.Plan)
-                .Include(ps => ps.UserConnections)
-                .FirstOrDefaultAsync(ps =>
-                    ps.UserId == userId &&
-                    ps.IsActive &&
-                    ps.EndDate > DateTime.UtcNow);
-
-            if (activeSub != null && canPurchase)
+            try
             {
-                canPurchase = false;
-                reasonCannotPurchase = "Ya tienes una suscripción activa";
-            }
-
-            // ¿Es hijo de otro plan?
-            var isChild = await _context.UserConnections
-                .AnyAsync(uc => uc.ChildUserId == userId && uc.IsActive);
-
-            if (isChild && canPurchase)
-            {
-                canPurchase = false;
-                reasonCannotPurchase = "Ya estás conectado a un plan familiar/empresarial";
-            }
-
-            var availablePlans = new List<PlanDto>();
-            if (canPurchase)
-            {
-                availablePlans = await _context.Plans
-                    .Where(p => p.Name != "Free")
-                    .Select(p => new PlanDto
-                    {
-                        Id = p.Id,
-                        Name = p.Name,
-                        PriceUSD = p.PriceUSD,
-                        MaxConnections = p.MaxConnections,
-                        UserCount = p.Users.Count
-                    })
-                    .ToListAsync();
-            }
-
-            var dto = new UserPlanStatusDto
-            {
-                HasPlan = activeSub != null,
-                CanPurchasePlan = canPurchase,
-                ReasonCannotPurchase = reasonCannotPurchase,
-                AvailablePlans = availablePlans
-            };
-
-            if (activeSub != null)
-            {
-                dto.CurrentSubscription = new PlanSubscriptionDto
+                var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                if (userId == 0)
                 {
-                    Id = activeSub.Id,
-                    UserId = activeSub.UserId,
-                    UserName = activeSub.User?.UserName ?? "Unknown",
-                    PlanId = activeSub.PlanId,
-                    PlanName = activeSub.Plan.Name,
-                    PriceUSD = activeSub.Plan.PriceUSD,
-                    MaxConnections = activeSub.Plan.MaxConnections,
-                    UsedConnections = activeSub.UserConnections.Count(uc => uc.IsActive) + 1,
-                    StartDate = activeSub.StartDate,
-                    EndDate = activeSub.EndDate,
-                    IsActive = activeSub.IsActive,
-                    ConnectedUsers = activeSub.UserConnections
-                        .Where(uc => uc.IsActive)
-                        .Select(uc => new UserDto
-                        {
-                            Id = uc.ChildUser.Id,
-                            UserName = uc.ChildUser.UserName,
-                            Email = uc.ChildUser.Email,
-                            Name = uc.ChildUser.Name,
-                            IsActive = uc.ChildUser.IsActive
-                        })
-                        .ToList()
-                };
-            }
+                    return BadRequest(new { message = "Usuario no válido" });
+                }
 
-            return Ok(dto);
+                var user = await _userManager.FindByIdAsync(userId.ToString());
+                if (user == null)
+                {
+                    return NotFound(new { message = "Usuario no encontrado" });
+                }
+
+                var roles = await _userManager.GetRolesAsync(user);
+                var canPurchase = !roles.Contains("Admin") && !roles.Contains("Artist");
+                string reasonCannotPurchase = "";
+
+                if (!canPurchase)
+                    reasonCannotPurchase = roles.Contains("Admin")
+                        ? "Los administradores no pueden comprar planes"
+                        : "Los artistas no pueden comprar planes";
+
+                // Suscripción activa - CORREGIR LA CONSULTA
+                var activeSub = await _context.PlanSubscriptions
+                    .Include(ps => ps.Plan)
+                    .Include(ps => ps.User) // AGREGAR ESTA LÍNEA
+                    .Include(ps => ps.UserConnections)
+                        .ThenInclude(uc => uc.ChildUser) // AGREGAR ESTA LÍNEA
+                    .FirstOrDefaultAsync(ps =>
+                        ps.UserId == userId &&
+                        ps.IsActive &&
+                        ps.EndDate > DateTime.UtcNow);
+
+                if (activeSub != null && canPurchase)
+                {
+                    canPurchase = false;
+                    reasonCannotPurchase = "Ya tienes una suscripción activa";
+                }
+
+                // ¿Es hijo de otro plan?
+                var isChild = await _context.UserConnections
+                    .AnyAsync(uc => uc.ChildUserId == userId && uc.IsActive);
+
+                if (isChild && canPurchase)
+                {
+                    canPurchase = false;
+                    reasonCannotPurchase = "Ya estás conectado a un plan familiar/empresarial";
+                }
+
+                var availablePlans = new List<PlanDto>();
+                if (canPurchase)
+                {
+                    // CORREGIR LA CONSULTA DE PLANES
+                    availablePlans = await _context.Plans
+                        .Where(p => p.Name != "Free")
+                        .Select(p => new PlanDto
+                        {
+                            Id = p.Id,
+                            Name = p.Name,
+                            PriceUSD = p.PriceUSD,
+                            MaxConnections = p.MaxConnections,
+                            UserCount = 0 // O eliminar esta propiedad si no es necesaria
+                        })
+                        .ToListAsync();
+                }
+
+                var dto = new UserPlanStatusDto
+                {
+                    HasPlan = activeSub != null,
+                    CanPurchasePlan = canPurchase,
+                    ReasonCannotPurchase = reasonCannotPurchase,
+                    AvailablePlans = availablePlans
+                };
+
+                if (activeSub != null)
+                {
+                    dto.CurrentSubscription = new PlanSubscriptionDto
+                    {
+                        Id = activeSub.Id,
+                        UserId = activeSub.UserId,
+                        UserName = activeSub.User?.UserName ?? "Unknown",
+                        PlanId = activeSub.PlanId,
+                        PlanName = activeSub.Plan.Name,
+                        PriceUSD = activeSub.Plan.PriceUSD,
+                        MaxConnections = activeSub.Plan.MaxConnections,
+                        UsedConnections = activeSub.UserConnections.Count(uc => uc.IsActive) + 1,
+                        StartDate = activeSub.StartDate,
+                        EndDate = activeSub.EndDate,
+                        IsActive = activeSub.IsActive,
+                        ConnectedUsers = activeSub.UserConnections
+                            .Where(uc => uc.IsActive)
+                            .Select(uc => new UserDto
+                            {
+                                Id = uc.ChildUser.Id,
+                                UserName = uc.ChildUser.UserName,
+                                Email = uc.ChildUser.Email,
+                                Name = uc.ChildUser.Name,
+                                IsActive = uc.ChildUser.IsActive
+                            })
+                            .ToList()
+                    };
+                }
+
+                return Ok(dto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    message = "Error al obtener el estado del plan",
+                    error = ex.Message
+                });
+            }
         }
 
         // 2. Crear pago y redirigir a PayPal
@@ -218,6 +240,14 @@ namespace BeatBay.API.Controllers
 
             record.Status = PaymentStatus.Completed;
 
+            // ✅ ACTUALIZAR EL PLANID DEL USUARIO
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user != null)
+            {
+                user.PlanId = planId;
+                await _userManager.UpdateAsync(user);
+            }
+
             var subscription = new PlanSubscription
             {
                 UserId = userId,
@@ -293,6 +323,13 @@ namespace BeatBay.API.Controllers
 
             active.IsActive = false;
 
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user != null)
+            {
+                user.PlanId = dto.NewPlanId;
+                await _userManager.UpdateAsync(user);
+            }
+
             var migrated = new PlanSubscription
             {
                 UserId = userId,
@@ -364,6 +401,9 @@ namespace BeatBay.API.Controllers
             if (already)
                 return BadRequest(new { message = "El usuario ya está conectado a un plan" });
 
+            child.PlanId = active.PlanId;
+            await _userManager.UpdateAsync(child);
+
             _context.UserConnections.Add(new UserConnection
             {
                 ParentSubscriptionId = active.Id,
@@ -393,6 +433,15 @@ namespace BeatBay.API.Controllers
                 return NotFound(new { message = "Conexión no encontrada" });
 
             conn.IsActive = false;
+
+            var childUser = await _userManager.FindByIdAsync(dto.ChildUserId.ToString());
+            if (childUser != null)
+            {
+                var freePlan = await _context.Plans.FirstOrDefaultAsync(p => p.Name == "Free");
+                childUser.PlanId = freePlan?.Id; // O null si no tienes plan Free
+                await _userManager.UpdateAsync(childUser);
+            }
+
             await _context.SaveChangesAsync();
             return Ok(new { message = "Usuario removido del plan exitosamente" });
         }
@@ -411,6 +460,26 @@ namespace BeatBay.API.Controllers
             active.IsActive = false;
             foreach (var c in active.UserConnections)
                 c.IsActive = false;
+
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user != null)
+            {
+                var freePlan = await _context.Plans.FirstOrDefaultAsync(p => p.Name == "Free");
+                user.PlanId = freePlan?.Id; // O null si no tienes plan Free
+                await _userManager.UpdateAsync(user);
+            }
+
+            // ✅ RESETEAR EL PLANID DE TODOS LOS USUARIOS CONECTADOS
+            foreach (var conn in active.UserConnections)
+            {
+                var childUser = await _userManager.FindByIdAsync(conn.ChildUserId.ToString());
+                if (childUser != null)
+                {
+                    var freePlan = await _context.Plans.FirstOrDefaultAsync(p => p.Name == "Free");
+                    childUser.PlanId = freePlan?.Id;
+                    await _userManager.UpdateAsync(childUser);
+                }
+            }
 
             await _context.SaveChangesAsync();
             return Ok(new { message = "Suscripción cancelada exitosamente" });
