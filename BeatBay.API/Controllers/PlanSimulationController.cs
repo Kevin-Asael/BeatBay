@@ -47,6 +47,9 @@ namespace BeatBay.API.Controllers
                     return NotFound(new { message = "Usuario no encontrado" });
                 }
 
+                // ✅ VERIFICAR Y EXPIRAR SUSCRIPCIONES VENCIDAS AUTOMÁTICAMENTE
+                await CheckAndExpireSubscriptions(userId);
+
                 var roles = await _userManager.GetRolesAsync(user);
                 var canPurchase = !roles.Contains("Admin") && !roles.Contains("Artist");
                 string reasonCannotPurchase = "";
@@ -56,12 +59,12 @@ namespace BeatBay.API.Controllers
                         ? "Los administradores no pueden comprar planes"
                         : "Los artistas no pueden comprar planes";
 
-                // Suscripción activa - CORREGIR LA CONSULTA
+                // Suscripción activa - DESPUÉS de verificar expiraciones
                 var activeSub = await _context.PlanSubscriptions
                     .Include(ps => ps.Plan)
-                    .Include(ps => ps.User) // AGREGAR ESTA LÍNEA
+                    .Include(ps => ps.User)
                     .Include(ps => ps.UserConnections)
-                        .ThenInclude(uc => uc.ChildUser) // AGREGAR ESTA LÍNEA
+                        .ThenInclude(uc => uc.ChildUser)
                     .FirstOrDefaultAsync(ps =>
                         ps.UserId == userId &&
                         ps.IsActive &&
@@ -86,7 +89,6 @@ namespace BeatBay.API.Controllers
                 var availablePlans = new List<PlanDto>();
                 if (canPurchase)
                 {
-                    // CORREGIR LA CONSULTA DE PLANES
                     availablePlans = await _context.Plans
                         .Where(p => p.Name != "Free")
                         .Select(p => new PlanDto
@@ -95,7 +97,7 @@ namespace BeatBay.API.Controllers
                             Name = p.Name,
                             PriceUSD = p.PriceUSD,
                             MaxConnections = p.MaxConnections,
-                            UserCount = 0 // O eliminar esta propiedad si no es necesaria
+                            UserCount = 0
                         })
                         .ToListAsync();
                 }
@@ -146,6 +148,52 @@ namespace BeatBay.API.Controllers
                     message = "Error al obtener el estado del plan",
                     error = ex.Message
                 });
+            }
+        }
+
+        //  MÉTODO PRIVADO PARA VERIFICAR Y EXPIRAR SUSCRIPCIONES
+        private async Task CheckAndExpireSubscriptions(int userId)
+        {
+            // Buscar suscripción del usuario que esté marcada como activa pero ya expiró
+            var expiredSubscription = await _context.PlanSubscriptions
+                .Include(ps => ps.UserConnections)
+                .FirstOrDefaultAsync(ps =>
+                    ps.UserId == userId &&
+                    ps.IsActive &&
+                    ps.EndDate <= DateTime.UtcNow);
+
+            if (expiredSubscription != null)
+            {
+                // Marcar suscripción como inactiva
+                expiredSubscription.IsActive = false;
+
+                // Obtener plan Free para resetear usuarios
+                var freePlan = await _context.Plans.FirstOrDefaultAsync(p => p.Name == "Free");
+
+                // Desactivar todas las conexiones y resetear PlanId de usuarios hijos
+                foreach (var connection in expiredSubscription.UserConnections.Where(uc => uc.IsActive))
+                {
+                    connection.IsActive = false;
+
+                    // Resetear PlanId del usuario hijo al plan Free
+                    var childUser = await _userManager.FindByIdAsync(connection.ChildUserId.ToString());
+                    if (childUser != null)
+                    {
+                        childUser.PlanId = freePlan?.Id;
+                        await _userManager.UpdateAsync(childUser);
+                    }
+                }
+
+                // Resetear PlanId del usuario principal al plan Free
+                var mainUser = await _userManager.FindByIdAsync(userId.ToString());
+                if (mainUser != null)
+                {
+                    mainUser.PlanId = freePlan?.Id;
+                    await _userManager.UpdateAsync(mainUser);
+                }
+
+                // Guardar cambios en la base de datos
+                await _context.SaveChangesAsync();
             }
         }
 
@@ -295,80 +343,7 @@ namespace BeatBay.API.Controllers
             }
         }
 
-        // 6. Cambiar plan
-        [HttpPost("change")]
-        public async Task<IActionResult> ChangePlan(ChangePlanDto dto)
-        {
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var active = await _context.PlanSubscriptions
-                .Include(ps => ps.Plan)
-                .Include(ps => ps.UserConnections)
-                .FirstOrDefaultAsync(ps => ps.UserId == userId && ps.IsActive && ps.EndDate > DateTime.UtcNow);
-            if (active == null)
-                return BadRequest(new { message = "No tienes una suscripción activa" });
-
-            var newPlan = await _context.Plans.FindAsync(dto.NewPlanId);
-            if (newPlan == null) return NotFound(new { message = "Plan no encontrado" });
-            if (newPlan.Name == "Free")
-                return BadRequest(new { message = "No puedes cambiar al plan Free" });
-            if (active.PlanId == dto.NewPlanId)
-                return BadRequest(new { message = "Ya tienes este plan activo" });
-
-            var currentConns = active.UserConnections.Count(uc => uc.IsActive);
-            if (currentConns > newPlan.MaxConnections)
-                return BadRequest(new
-                {
-                    message = $"El nuevo plan solo permite {newPlan.MaxConnections} conexiones. Actualmente tienes {currentConns}"
-                });
-
-            active.IsActive = false;
-
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user != null)
-            {
-                user.PlanId = dto.NewPlanId;
-                await _userManager.UpdateAsync(user);
-            }
-
-            var migrated = new PlanSubscription
-            {
-                UserId = userId,
-                PlanId = dto.NewPlanId,
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddMonths(1),
-                AmountPaid = newPlan.PriceUSD,
-                IsActive = true
-            };
-            _context.PlanSubscriptions.Add(migrated);
-
-            // Migrar conexiones
-            foreach (var oldConn in active.UserConnections.Where(uc => uc.IsActive).Take(newPlan.MaxConnections))
-            {
-                oldConn.IsActive = false;
-                _context.UserConnections.Add(new UserConnection
-                {
-                    ParentSubscriptionId = migrated.Id,
-                    ChildUserId = oldConn.ChildUserId,
-                    ConnectedAt = DateTime.UtcNow,
-                    IsActive = true
-                });
-            }
-
-            // Registrar pago simulado
-            _context.Payments.Add(new Payment
-            {
-                UserId = userId,
-                PlanId = dto.NewPlanId,
-                Status = PaymentStatus.Completed,
-                PaymentDate = DateTime.UtcNow,
-                Amount = newPlan.PriceUSD
-            });
-
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Plan cambiado exitosamente", newSubscriptionId = migrated.Id });
-        }
-
-        // 7. Agregar conexión de usuario hijo
+        // 6. Agregar conexión de usuario hijo
         [HttpPost("add-connection")]
         public async Task<IActionResult> AddConnection(AddConnectionDto dto)
         {
@@ -416,7 +391,7 @@ namespace BeatBay.API.Controllers
             return Ok(new { message = "Usuario agregado exitosamente al plan" });
         }
 
-        // 8. Remover conexión
+        // 7. Remover conexión
         [HttpPost("remove-connection")]
         public async Task<IActionResult> RemoveConnection(RemoveConnectionDto dto)
         {
@@ -446,7 +421,7 @@ namespace BeatBay.API.Controllers
             return Ok(new { message = "Usuario removido del plan exitosamente" });
         }
 
-        // 9. Cancelar suscripción
+        // 8. Cancelar suscripción
         [HttpPost("cancel")]
         public async Task<IActionResult> CancelSubscription()
         {
@@ -485,7 +460,7 @@ namespace BeatBay.API.Controllers
             return Ok(new { message = "Suscripción cancelada exitosamente" });
         }
 
-        // 10. Historial de suscripciones
+        // 9. Historial de suscripciones
         [HttpGet("history")]
         public async Task<ActionResult<List<PlanSubscriptionDto>>> GetSubscriptionHistory()
         {
@@ -525,6 +500,40 @@ namespace BeatBay.API.Controllers
                 .ToListAsync();
 
             return Ok(list);
+        }
+
+        // 10. Buscar usuarios por nombre de usuario
+        [HttpGet("search-users")]
+        public async Task<ActionResult<List<UserDto>>> SearchUsers([FromQuery] string username)
+        {
+            if (string.IsNullOrEmpty(username))
+                return BadRequest(new { message = "El nombre de usuario es requerido" });
+
+            var users = await _userManager.Users
+                .Where(u => u.UserName.Contains(username) && u.IsActive)
+                .Take(5) // Limit results
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    UserName = u.UserName,
+                    Name = u.Name,
+                    Email = u.Email,
+                    IsActive = u.IsActive
+                })
+                .ToListAsync();
+
+            // Filter out admins and artists
+            var filteredUsers = new List<UserDto>();
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(await _userManager.FindByIdAsync(user.Id.ToString()));
+                if (!roles.Contains("Admin") && !roles.Contains("Artist"))
+                {
+                    filteredUsers.Add(user);
+                }
+            }
+
+            return Ok(filteredUsers);
         }
     }
 }

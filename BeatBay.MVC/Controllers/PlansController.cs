@@ -351,5 +351,33 @@ namespace BeatBay.MVC.Controllers
                 await resp.Content.ReadAsStringAsync());
             return View(list);
         }
+
+        // 13. GET /Plans/SearchUsers
+        [HttpGet]
+        public async Task<IActionResult> SearchUsers(string username)
+        {
+            if (HttpContext.Session.GetString("JwtToken") == null)
+                return Json(new List<object>());
+
+            try
+            {
+                var client = CreateClient();
+                var response = await client.GetAsync($"api/PlanSimulation/search-users?username={Uri.EscapeDataString(username)}");
+                
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    return Json(new List<object>());
+
+                if (!response.IsSuccessStatusCode)
+                    return Json(new List<object>());
+
+                var users = JsonConvert.DeserializeObject<List<UserDto>>(
+                    await response.Content.ReadAsStringAsync());
+                return Json(users);
+            }
+            catch
+            {
+                return Json(new List<object>());
+            }
+        }
     }
 }

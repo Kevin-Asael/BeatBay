@@ -139,27 +139,85 @@
                 <div class="card-header bg-info text-white">
                     <i class="fas fa-user-plus me-2"></i> Agregar Usuario por ID
                 </div>
-                <div class="card-body">
-                    @{
-                        var canAdd = Model.CurrentSubscription.UsedConnections < Model.CurrentSubscription.MaxConnections;
-                    }
-                    @if (canAdd)
-                    {
-                        <form method="post" action="@Url.Action("AddConnection","Plans")">
-                            @Html.AntiForgeryToken()
-                            <div class="mb-3">
-                                <label for="childUserId" class="form-label">ID del Usuario</label>
-                                <input type="number" id="childUserId" name="childUserId" class="form-control"
-                                       placeholder="Ejemplo: 123" required min="1" />
-                                <div class="form-text">Ingresa el ID numérico del usuario a agregar</div>
+                @{
+                    var canAdd = Model.CurrentSubscription.UsedConnections < Model.CurrentSubscription.MaxConnections;
+                }
+                @if (canAdd)
+                {
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="searchUsername" class="form-label">Buscar Usuario</label>
+                            <div class="input-group">
+                                <input type="text" id="searchUsername" class="form-control" 
+                                       placeholder="Ingresa el nombre de usuario..." />
+                                <button type="button" class="btn btn-info" onclick="searchUsers()">
+                                    <i class="fas fa-search me-1"></i> Buscar
+                                </button>
                             </div>
-                            <button type="submit" class="btn btn-success w-100">
+                            <div class="form-text">Ingresa el nombre de usuario para buscarlo</div>
+                        </div>
+
+                        <div id="searchResults" class="list-group mb-3" style="display:none;">
+                            <!-- Results will be populated here -->
+                        </div>
+
+                        <form method="post" action="@Url.Action("AddConnection","Plans")" id="addConnectionForm">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" id="childUserId" name="childUserId" required />
+                            <button type="submit" class="btn btn-success w-100" style="display:none;" id="addButton">
                                 <i class="fas fa-plus me-2"></i> Agregar Usuario
                             </button>
                         </form>
+                    </div>
+
+                    @section Scripts {
+                        <script>
+                            async function searchUsers() {
+                                const username = document.getElementById('searchUsername').value;
+                                if (!username) return;
+
+                                try {
+                                    const response = await fetch(`/Plans/SearchUsers?username=${encodeURIComponent(username)}`);
+                                    const users = await response.json();
+                                    
+                                    const resultsDiv = document.getElementById('searchResults');
+                                    resultsDiv.innerHTML = '';
+                                    
+                                    if (users.length === 0) {
+                                        resultsDiv.innerHTML = '<div class="alert alert-info">No se encontraron usuarios</div>';
+                                    } else {
+                                        users.forEach(user => {
+                                            const button = document.createElement('button');
+                                            button.className = 'list-group-item list-group-item-action';
+                                            button.type = 'button';
+                                            button.innerHTML = `
+                                                <strong>${user.userName}</strong>
+                                                ${user.name ? `<br><small class="text-muted">${user.name}</small>` : ''}
+                                            `;
+                                            button.onclick = () => selectUser(user);
+                                            resultsDiv.appendChild(button);
+                                        });
+                                    }
+                                    
+                                    resultsDiv.style.display = 'block';
+                                } catch (error) {
+                                    console.error('Error:', error);
+                                    alert('Error al buscar usuarios');
+                                }
+                            }
+
+                            function selectUser(user) {
+                                document.getElementById('searchUsername').value = user.userName;
+                                document.getElementById('childUserId').value = user.id;
+                                document.getElementById('searchResults').style.display = 'none';
+                                document.getElementById('addButton').style.display = 'block';
+                            }
+                        </script>
                     }
-                    else
-                    {
+                }
+                else
+                {
+                    <div class="card-body">
                         <div class="text-center text-muted">
                             <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
                             <p>Límite de conexiones alcanzado</p>
@@ -167,8 +225,8 @@
                                 <i class="fas fa-arrow-up me-1"></i> Actualizar Plan
                             </a>
                         </div>
-                    }
-                </div>
+                    </div>
+                }
             </div>
 
             <div class="card mt-3">
