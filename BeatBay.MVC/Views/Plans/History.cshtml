@@ -1,6 +1,6 @@
 ﻿@model List<BeatBay.DTOs.PlanSubscriptionDto>
 @{
-    ViewData["Title"] = "Historial de Suscripciones";
+    ViewData["Title"] = "Subscription History";
 }
 
 <div class="container mt-4">
@@ -8,7 +8,7 @@
         <div class="col-md-12">
             <h2 class="mb-4">
                 <i class="fas fa-history me-2"></i>
-                Historial de Suscripciones
+                Subscription History
             </h2>
 
             @if (ViewBag.ErrorMessage != null)
@@ -22,8 +22,8 @@
             <!-- Navegación -->
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Mis Planes</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Historial</li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">My Plans</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">History</li>
                 </ol>
             </nav>
 
@@ -36,7 +36,7 @@
                             <div class="card-body text-center">
                                 <i class="fas fa-clipboard-list fa-3x mb-3"></i>
                                 <h3 class="display-4">@Model.Count</h3>
-                                <p class="mb-0 text-uppercase">Suscripciones Totales</p>
+                                <p class="mb-0 text-uppercase">Total Subscriptions</p>
                             </div>
                         </div>
                     </div>
@@ -45,7 +45,7 @@
                             <div class="card-body text-center">
                                 <i class="fas fa-check-circle fa-3x mb-3"></i>
                                 <h3 class="display-4">@Model.Count(s => s.IsActive)</h3>
-                                <p class="mb-0 text-uppercase">Activas</p>
+                                <p class="mb-0 text-uppercase">Active</p>
                             </div>
                         </div>
                     </div>
@@ -54,7 +54,7 @@
                             <div class="card-body text-center">
                                 <i class="fas fa-times-circle fa-3x mb-3"></i>
                                 <h3 class="display-4">@Model.Count(s => !s.IsActive)</h3>
-                                <p class="mb-0 text-uppercase">Canceladas</p>
+                                <p class="mb-0 text-uppercase">Canceled</p>
                             </div>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                             <div class="card-body text-center">
                                 <i class="fas fa-dollar-sign fa-3x mb-3"></i>
                                 <h3 class="display-4">$@Model.Sum(s => s.PriceUSD).ToString("F2")</h3>
-                                <p class="mb-0 text-uppercase">Total Invertido</p>
+                                <p class="mb-0 text-uppercase">Total Invested</p>
                             </div>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                     <div class="card-header bg-gradient-primary text-white">
                         <h5 class="mb-0">
                             <i class="fas fa-table me-2"></i>
-                            Historial Detallado
+                            Detailed History
                         </h5>
                     </div>
                     <div class="card-body p-0">
@@ -83,13 +83,13 @@
                                 <thead class="table-dark">
                                     <tr>
                                         <th><i class="fas fa-star me-2"></i>Plan</th>
-                                        <th><i class="fas fa-tag me-2"></i>Precio</th>
-                                        <th><i class="fas fa-users me-2"></i>Conexiones</th>
-                                        <th><i class="fas fa-calendar-alt me-2"></i>Fecha Inicio</th>
-                                        <th><i class="fas fa-calendar-times me-2"></i>Fecha Fin</th>
-                                        <th><i class="fas fa-clock me-2"></i>Duración</th>
-                                        <th><i class="fas fa-info-circle me-2"></i>Estado</th>
-                                        <th><i class="fas fa-cog me-2"></i>Acciones</th>
+                                        <th><i class="fas fa-tag me-2"></i>Price</th>
+                                        <th><i class="fas fa-users me-2"></i>Connections</th>
+                                        <th><i class="fas fa-calendar-alt me-2"></i>Start Date</th>
+                                        <th><i class="fas fa-calendar-times me-2"></i>End Date</th>
+                                        <th><i class="fas fa-clock me-2"></i>Duration</th>
+                                        <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                                        <th><i class="fas fa-cog me-2"></i>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -145,7 +145,7 @@
                                             <td>
                                                 @{
                                                     var duration = subscription.EndDate - subscription.StartDate;
-                                                    var durationText = duration.Days > 0 ? $"{duration.Days} días" : "Menos de 1 día";
+                                                    var durationText = duration.Days > 0 ? $"{duration.Days} days" : "Less than 1 day";
                                                 }
                                                 <span class="badge bg-secondary fs-6 px-3 py-2">
                                                     <i class="fas fa-hourglass-half me-1"></i>
@@ -157,14 +157,14 @@
                                                 {
                                                     <span class="badge bg-success fs-6 px-3 py-2">
                                                         <i class="fas fa-check me-1"></i>
-                                                        Activo
+                                                        Active
                                                     </span>
                                                 }
                                                 else
                                                 {
                                                     <span class="badge bg-warning text-dark fs-6 px-3 py-2">
                                                         <i class="fas fa-ban me-1"></i>
-                                                        Cancelado
+                                                        Canceled
                                                     </span>
                                                 }
                                             </td>
@@ -174,13 +174,13 @@
                                                             class="btn btn-outline-info btn-sm"
                                                             onclick="showSubscriptionDetails(@subscription.Id, '@Html.Raw(Html.Encode(Newtonsoft.Json.JsonConvert.SerializeObject(subscription)))')">
                                                         <i class="fas fa-eye me-1"></i>
-                                                        Ver Detalles
+                                                        View Details
                                                     </button>
                                                     @if (subscription.IsActive)
                                                     {
                                                         <a href="@Url.Action("Index")" class="btn btn-outline-primary btn-sm">
                                                             <i class="fas fa-cog me-1"></i>
-                                                            Gestionar
+                                                            Manage
                                                         </a>
                                                     }
                                                 </div>
@@ -200,7 +200,7 @@
                             <div class="modal-header bg-gradient-primary text-white">
                                 <h5 class="modal-title" id="detailModalLabel">
                                     <i class="fas fa-info-circle me-2"></i>
-                                    Detalles de la Suscripción
+                                    Subscription Details
                                 </h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
@@ -210,22 +210,22 @@
                                         <div class="info-section">
                                             <h6 class="text-primary border-bottom pb-2">
                                                 <i class="fas fa-star me-2"></i>
-                                                Información del Plan
+                                                Plan Information
                                             </h6>
                                             <div class="info-item">
-                                                <strong>Nombre:</strong>
+                                                <strong>Name:</strong>
                                                 <span id="modal-plan-name" class="text-dark"></span>
                                             </div>
                                             <div class="info-item">
-                                                <strong>Precio:</strong>
+                                                <strong>Price:</strong>
                                                 <span class="badge bg-primary">$<span id="modal-price"></span> USD</span>
                                             </div>
                                             <div class="info-item">
-                                                <strong>Conexiones máximas:</strong>
+                                                <strong>Max connections:</strong>
                                                 <span id="modal-max-connections" class="text-dark"></span>
                                             </div>
                                             <div class="info-item">
-                                                <strong>Conexiones utilizadas:</strong>
+                                                <strong>Used connections:</strong>
                                                 <span id="modal-used-connections" class="text-dark"></span>
                                             </div>
                                         </div>
@@ -234,22 +234,22 @@
                                         <div class="info-section">
                                             <h6 class="text-primary border-bottom pb-2">
                                                 <i class="fas fa-calendar me-2"></i>
-                                                Período de Vigencia
+                                                Validity Period
                                             </h6>
                                             <div class="info-item">
-                                                <strong>Fecha de inicio:</strong>
+                                                <strong>Start date:</strong>
                                                 <span id="modal-start-date" class="text-dark"></span>
                                             </div>
                                             <div class="info-item">
-                                                <strong>Fecha de fin:</strong>
+                                                <strong>End date:</strong>
                                                 <span id="modal-end-date" class="text-dark"></span>
                                             </div>
                                             <div class="info-item">
-                                                <strong>Estado:</strong>
+                                                <strong>Status:</strong>
                                                 <span id="modal-status"></span>
                                             </div>
                                             <div class="info-item">
-                                                <strong>Duración total:</strong>
+                                                <strong>Total duration:</strong>
                                                 <span id="modal-duration" class="text-dark"></span>
                                             </div>
                                         </div>
@@ -260,7 +260,7 @@
                                     <div class="col-md-12">
                                         <h6 class="text-primary border-bottom pb-2">
                                             <i class="fas fa-users me-2"></i>
-                                            Usuarios Conectados
+                                            Connected Users
                                         </h6>
                                         <div id="modal-connected-users" class="connected-users-container"></div>
                                     </div>
@@ -269,7 +269,7 @@
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                                     <i class="fas fa-times me-2"></i>
-                                    Cerrar
+                                    Close
                                 </button>
                             </div>
                         </div>
@@ -283,11 +283,11 @@
                     <div class="card-body text-center py-5">
                         <div class="empty-state">
                             <i class="fas fa-history text-muted mb-4" style="font-size: 5rem;"></i>
-                            <h3 class="text-muted mb-3">Sin historial de suscripciones</h3>
-                            <p class="text-muted mb-4">Aún no tienes suscripciones en tu historial.</p>
+                            <h3 class="text-muted mb-3">No subscription history</h3>
+                            <p class="text-muted mb-4">You don't have any subscriptions in your history yet.</p>
                             <a href="@Url.Action("Purchase")" class="btn btn-primary btn-lg">
                                 <i class="fas fa-shopping-cart me-2"></i>
-                                Comprar tu primer plan
+                                Purchase your first plan
                             </a>
                         </div>
                     </div>
@@ -300,11 +300,11 @@
                     <div class="btn-group" role="group">
                         <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-lg">
                             <i class="fas fa-arrow-left me-2"></i>
-                            Volver a Mis Planes
+                            Back to My Plans
                         </a>
                         <a href="@Url.Action("Purchase")" class="btn btn-primary btn-lg">
                             <i class="fas fa-plus me-2"></i>
-                            Comprar Nuevo Plan
+                            Purchase New Plan
                         </a>
                     </div>
                 </div>
@@ -314,241 +314,212 @@
 </div>
 
 <style>
+    :root {
+        --primary: #6366f1;
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --success: #10b981;
+        --success-dark: #059669;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --danger-dark: #dc2626;
+        --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --light-gray: #f8fafc;
+        --dark-gray: #1f2937;
+        --shadow: rgba(0, 0, 0, 0.1);
+        --btn-background: #6366f1; /* Botón Primary */
+        --btn-background-hover: #8b5cf6; /* Hover de Botón Primary */
+    }
+
+    /* Fondo del sitio */
+    body {
+        background: var(--background);
+        color: var(--dark-gray);
+    }
+
+    /* Botones */
+    .btn-primary {
+        background-color: var(--btn-background);
+        border-color: var(--btn-background);
+        color: white; /* Asegura que el texto sea blanco */
+    }
+
+        .btn-primary:hover {
+            background-color: var(--btn-background-hover);
+            border-color: var(--btn-background-hover);
+            color: white; /* Asegura que el texto sea blanco */
+        }
+
+    /* Botón de "Volver" en caso de fondo oscuro */
+    .btn-outline-secondary {
+        background-color: rgba(255, 255, 255, 0.7); /* Fondo blanco translúcido */
+        border-color: #fff;
+        color: var(--dark-gray);
+    }
+
+        .btn-outline-secondary:hover {
+            background-color: #fff; /* Fondo blanco sólido al hacer hover */
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+    /* Tarjetas y otros contenedores con fondo oscuro */
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 2px 4px var(--shadow);
+        background-color: var(--light-gray); /* Fondo claro */
+    }
+
+    /* Para las alertas y textos sobre fondos oscuros */
+    .alert-warning {
+        background-color: rgba(245, 158, 11, 0.1);
+        border-color: var(--warning);
+    }
+
+    /* Ajustes para mejorar la visibilidad de los textos */
+    .text-muted {
+        color: var(--dark-gray) !important;
+    }
+
+    .text-success {
+        color: var(--success) !important;
+    }
+
+    .text-danger {
+        color: var(--danger) !important;
+    }
+
+    .text-warning {
+        color: var(--warning) !important;
+    }
+
+    /* Para los íconos */
+    .plan-icon {
+        font-size: 1.5rem;
+        color: white; /* Asegura que los iconos sean blancos para mayor contraste */
+    }
+
+    /* Fondo del modal */
+    .modal-content {
+        background: var(--light-gray);
+        border-radius: 15px;
+        box-shadow: 0 2px 4px var(--shadow);
+    }
+
+    /* Fondo claro para las celdas de la tabla */
+    .table-light {
+        background-color: var(--light-gray);
+    }
+
+    /* Ajustes para las tarjetas estadísticas */
     .stats-card {
         border: none;
         border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px var(--shadow);
         transition: transform 0.3s ease;
+        background-color: var(--light-gray);
+        color: var(--dark-gray); /* Asegura que el texto sea visible */
     }
 
         .stats-card:hover {
             transform: translateY(-5px);
         }
 
-    .subscription-row {
-        border-left: 4px solid transparent;
-        transition: all 0.3s ease;
+    /* Para los botones del modal */
+    .btn-close-white {
+        color: white;
     }
 
-        .subscription-row:hover {
-            background-color: #f8f9fa !important;
-            border-left-color: #007bff;
+    /* Estilo para los enlaces */
+    a {
+        color: var(--primary); /* Colores de enlaces */
+    }
+
+        a:hover {
+            color: var(--primary-gradient); /* Hover sobre enlaces */
         }
-
-        .subscription-row.table-success {
-            border-left-color: #28a745;
-        }
-
-    .plan-icon {
-        font-size: 1.5rem;
-    }
-
-    .date-info {
-        text-align: center;
-    }
-
-    .progress {
-        border-radius: 10px;
-    }
-
-    .progress-bar {
-        border-radius: 10px;
-    }
-
-    .badge {
-        font-size: 0.9rem;
-        border-radius: 25px;
-    }
-
-    .card {
-        border: none;
-        border-radius: 15px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .bg-gradient-primary {
-        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    }
-
-    .info-section {
-        margin-bottom: 1.5rem;
-    }
-
-    .info-item {
-        margin-bottom: 0.8rem;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #f1f1f1;
-    }
-
-        .info-item:last-child {
-            border-bottom: none;
-        }
-
-    .connected-users-container .user-card {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 0.75rem;
-        margin-bottom: 0.5rem;
-        transition: all 0.3s ease;
-    }
-
-        .connected-users-container .user-card:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
-        }
-
-    .modal-header {
-        border-bottom: none;
-    }
-
-    .modal-footer {
-        border-top: none;
-    }
-
-    .empty-state {
-        padding: 3rem 0;
-    }
-
-    .btn-group .btn {
-        border-radius: 25px;
-    }
-
-    .btn-lg {
-        padding: 0.75rem 2rem;
-        font-size: 1.1rem;
-    }
-
-    @@media (max-width: 768px) {
-        .table-responsive
-
-    {
-        font-size: 0.9rem;
-    }
-
-    .badge {
-        font-size: 0.8rem;
-    }
-
-    .btn-group .btn {
-        font-size: 0.8rem;
-        padding: 0.5rem 1rem;
-    }
-
-    }
 </style>
 
 <script>
-    // Función para mostrar detalles de la suscripción
+        // Función para mostrar los detalles de una suscripción
     function showSubscriptionDetails(subscriptionId, subscriptionDataJson) {
         try {
-            // Decodificar el JSON
-            const subscriptionData = JSON.parse(subscriptionDataJson);
-            console.log('Datos de suscripción:', subscriptionData);
+            // Convertir el JSON a objeto
+            const subscription = JSON.parse(subscriptionDataJson);
 
-            // Llenar datos básicos
-            document.getElementById('modal-plan-name').textContent = subscriptionData.PlanName || 'No disponible';
-            document.getElementById('modal-price').textContent = subscriptionData.PriceUSD ? subscriptionData.PriceUSD.toFixed(2) : '0.00';
-            document.getElementById('modal-max-connections').textContent = subscriptionData.MaxConnections || '0';
-            document.getElementById('modal-used-connections').textContent = subscriptionData.UsedConnections || '0';
+            // Mostrar información básica
+            document.getElementById('modal-plan-name').textContent = subscription.PlanName || 'Not available';
+            document.getElementById('modal-price').textContent = subscription.PriceUSD?.toFixed(2) || '0.00';
+            document.getElementById('modal-max-connections').textContent = subscription.MaxConnections || '0';
+            document.getElementById('modal-used-connections').textContent = subscription.UsedConnections || '0';
 
             // Formatear fechas
-            const startDate = new Date(subscriptionData.StartDate);
-            const endDate = new Date(subscriptionData.EndDate);
-
-            document.getElementById('modal-start-date').textContent = startDate.toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            document.getElementById('modal-end-date').textContent = endDate.toLocaleDateString('es-ES', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            // Calcular duración
-            const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-            document.getElementById('modal-duration').textContent = duration > 0 ? duration + ' días' : 'Menos de 1 día';
-
-            // Estado
-            const statusElement = document.getElementById('modal-status');
-            if (subscriptionData.IsActive) {
-                statusElement.innerHTML = '<span class="badge bg-success fs-6 px-3 py-2"><i class="fas fa-check me-1"></i>Activo</span>';
-            } else {
-                statusElement.innerHTML = '<span class="badge bg-warning text-dark fs-6 px-3 py-2"><i class="fas fa-ban me-1"></i>Cancelado</span>';
-            }
-
-            // Usuarios conectados
-            const connectedUsersContainer = document.getElementById('modal-connected-users');
-            if (subscriptionData.ConnectedUsers && subscriptionData.ConnectedUsers.length > 0) {
-                let usersHtml = '';
-                subscriptionData.ConnectedUsers.forEach(user => {
-                    usersHtml += `
-                        <div class="user-card">
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <i class="fas fa-user-circle text-primary" style="font-size: 2rem;"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1">${user.UserName}</h6>
-                                    ${user.Name ? `<p class="mb-1 text-muted">${user.Name}</p>` : ''}
-                                    ${user.Email ? `<small class="text-muted">${user.Email}</small>` : ''}
-                                </div>
-                                <div>
-                                    <span class="badge ${user.IsActive ? 'bg-success' : 'bg-secondary'}">
-                                        ${user.IsActive ? 'Activo' : 'Inactivo'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+            const formatDate = (dateString) => {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
-                connectedUsersContainer.innerHTML = usersHtml;
+            };
+
+            document.getElementById('modal-start-date').textContent = formatDate(subscription.StartDate);
+            document.getElementById('modal-end-date').textContent = formatDate(subscription.EndDate);
+
+            // Calcular duración en días
+            const start = new Date(subscription.StartDate);
+            const end = new Date(subscription.EndDate);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            document.getElementById('modal-duration').textContent = days > 0 ? `${days} days` : 'Less than 1 day';
+
+            // Mostrar estado
+            const statusElement = document.getElementById('modal-status');
+            if (subscription.IsActive) {
+                statusElement.innerHTML = '<span class="badge bg-success">Active</span>';
             } else {
-                connectedUsersContainer.innerHTML = `
-                    <div class="text-center py-3">
-                        <i class="fas fa-users text-muted mb-2" style="font-size: 2rem;"></i>
-                        <p class="text-muted mb-0">No hay usuarios conectados a esta suscripción</p>
-                    </div>
-                `;
+                statusElement.innerHTML = '<span class="badge bg-warning">Canceled</span>';
             }
 
-            // Mostrar el modal
-            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-            modal.show();
+            // Mostrar usuarios conectados
+            const usersContainer = document.getElementById('modal-connected-users');
+            if (subscription.ConnectedUsers?.length > 0) {
+                usersContainer.innerHTML = subscription.ConnectedUsers.map(user => `
+                    <div class="user-card mb-2 p-2 border rounded">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${user.UserName}</strong>
+                                ${user.Email ? `<div class="small">${user.Email}</div>` : ''}
+                            </div>
+                            <span class="badge ${user.IsActive ? 'bg-success' : 'bg-secondary'}">
+                                ${user.IsActive ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                usersContainer.innerHTML = '<p class="text-muted">No connected users</p>';
+            }
+
+            // Abrir el modal
+            new bootstrap.Modal('#detailModal').show();
 
         } catch (error) {
-            console.error('Error al procesar datos de suscripción:', error);
-            alert('Error al cargar los detalles de la suscripción. Por favor, intenta nuevamente.');
+            console.error('Error:', error);
+            alert('An error occurred while loading details');
         }
     }
 
-    // Inicializar cuando el DOM esté listo
+    // Cuando la página cargue
     document.addEventListener('DOMContentLoaded', function() {
-        // Agregar animaciones a las tarjetas de estadísticas
-        const statsCards = document.querySelectorAll('.stats-card');
-        statsCards.forEach((card, index) => {
+        // Animación simple para las tarjetas de estadísticas
+        const cards = document.querySelectorAll('.stats-card');
+        cards.forEach((card, i) => {
             setTimeout(() => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    card.style.transition = 'all 0.5s ease';
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, 100 * index);
-            }, 100);
-        });
-
-        // Tooltip para botones
-        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+                card.style.transform = 'scale(1)';
+                card.style.opacity = '1';
+            }, i * 100);
         });
     });
 </script>
