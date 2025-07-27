@@ -362,26 +362,23 @@
 
     /* Responsive Design */
     @@media (max-width: 768px) {
-        .container
+        .container {
+            padding: 1rem;
+            min-height: 100vh;
+        }
 
-    {
-        padding: 1rem;
-        min-height: 100vh;
-    }
+        .page-title {
+            font-size: 2rem;
+        }
 
-    .page-title {
-        font-size: 2rem;
-    }
+        .plans-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
 
-    .plans-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .price {
-        font-size: 2rem;
-    }
-
+        .price {
+            font-size: 2rem;
+        }
     }
 </style>
 

@@ -1,44 +1,363 @@
 ﻿@model BeatBay.DTOs.CreateSongDto
 
 @{
-    ViewData["Title"] = "Subir Canción";
+    ViewData["Title"] = "Upload Song";
 }
 
-<h2>Subir Nueva Canción</h2>
+<style>
+    /* Asegurar que el body tenga el gradiente completo */
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
 
-@if (ViewBag.Error != null)
-{
-    <div class="alert alert-danger">@ViewBag.Error</div>
-}
+    /* Contenedor principal que ocupa toda la pantalla excepto el navbar */
+    .upload-container {
+        min-height: calc(100vh - 80px);
+        background: transparent; /* El gradiente ya está en el body */
+        padding: 2rem 1rem;
+        margin: 0;
+        position: relative;
+        width: 100%;
+    }
 
-<form asp-action="Create" enctype="multipart/form-data" method="post">
-    <div class="form-group">
-        <label asp-for="Title"></label>
-        <input asp-for="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
+    /* Contenido sin card, directamente sobre el fondo */
+    .upload-content {
+        background: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        transition: none;
+    }
+
+    /* Icono principal */
+    .upload-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3);
+        margin: 0 auto;
+        transition: all 0.3s ease;
+    }
+
+        .upload-icon:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+        }
+
+    /* Títulos */
+    .upload-title {
+        font-weight: 700;
+        color: white;
+        font-size: 2rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .upload-subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Labels personalizados */
+    .form-label-custom {
+        font-weight: 600;
+        color: white;
+        margin-bottom: 0.5rem;
+        display: block;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Controles de formulario */
+    .form-control-custom {
+        border-radius: 16px;
+        padding: 0.875rem 1.25rem;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        color: white;
+    }
+
+        .form-control-custom::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .form-control-custom:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
+            outline: none;
+            color: white;
+        }
+
+        .form-control-custom:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+    /* Input de duración (readonly) */
+    .duration-input {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    /* Botones personalizados */
+    .btn-custom {
+        border-radius: 12px;
+        font-weight: 600;
+        padding: 0.875rem 1.75rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+        .btn-primary-custom:hover {
+            background: linear-gradient(135deg, #5856eb, #7c3aed);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+
+    .btn-light-custom {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+        .btn-light-custom:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+
+    /* Información de archivo */
+    .file-upload-info {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.875rem;
+    }
+
+    .file-info-text {
+        color: #10b981;
+        background: rgba(16, 185, 129, 0.2);
+        padding: 0.5rem;
+        border-radius: 8px;
+        border-left: 3px solid #10b981;
+        backdrop-filter: blur(5px);
+    }
+
+    /* Alertas personalizadas */
+    .custom-alert {
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        backdrop-filter: blur(10px);
+    }
+
+    .alert-danger {
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #fecaca;
+    }
+
+    .custom-alert i {
+        margin-right: 12px;
+        font-size: 1.2rem;
+    }
+
+    /* Wrapper para upload de archivos */
+    .file-upload-wrapper {
+        position: relative;
+    }
+
+    /* Floating labels */
+    .form-floating > label {
+        color: rgba(255, 255, 255, 0.7);
+        padding: 1rem 1.25rem;
+    }
+
+    .form-floating > .form-control-custom:focus ~ label,
+    .form-floating > .form-control-custom:not(:placeholder-shown) ~ label {
+        color: rgba(255, 255, 255, 0.9);
+        transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+    }
+
+    /* Responsividad */
+    @@media (max-width: 768px) {
+        .upload-container
+
+    {
+        padding: 1rem 0.5rem;
+        min-height: calc(100vh - 70px);
+    }
+
+    .upload-content {
+        margin: 0 0.5rem;
+    }
+
+    .upload-title {
+        font-size: 1.75rem;
+    }
+
+    .upload-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 1.75rem;
+    }
+
+    }
+
+    /* Validación de errores */
+    .text-danger {
+        color: #ef4444 !important;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Asegurar que no haya márgenes en el contenedor principal */
+    .container-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Resetear cualquier margen del row */
+    .row {
+        margin: 0 !important;
+    }
+</style>
+
+<div class="upload-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="upload-content p-4 p-md-5">
+                <div class="text-center mb-5">
+                    <div class="upload-icon-container mb-4">
+                        <div class="upload-icon">
+                            <i class="fas fa-music"></i>
+                        </div>
+                    </div>
+                    <h2 class="upload-title mb-3">Upload New Song</h2>
+                    <p class="upload-subtitle">Share your music with the BeatBay community</p>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="custom-alert alert-danger mb-4">
+                        <div class="alert-content">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <div>@ViewBag.Error</div>
+                        </div>
+                    </div>
+                }
+
+                <form asp-action="Create" enctype="multipart/form-data" method="post">
+                    <div class="mb-4">
+                        <div class="form-floating">
+                            <input asp-for="Title" class="form-control-custom" placeholder="Song title" />
+                            <label>Song Title</label>
+                        </div>
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-floating">
+                            <input asp-for="Duration" class="form-control-custom duration-input" id="durationInput" type="text" placeholder="Duration" readonly />
+                            <label>Duration (will be calculated automatically)</label>
+                        </div>
+                        <span asp-validation-for="Duration" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-floating">
+                            <input asp-for="Genre" class="form-control-custom" placeholder="Musical genre" />
+                            <label>Musical Genre</label>
+                        </div>
+                        <span asp-validation-for="Genre" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-5">
+                        <label for="audioFile" class="form-label-custom">Audio File</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" name="audioFile" id="audioFile" class="form-control-custom" accept=".mp3,.wav,.flac,.m4a" required />
+                            <div class="file-upload-info mt-2 small">Accepted formats: .mp3, .wav, .flac, .m4a</div>
+                        </div>
+                        <div id="audioInfo" class="mt-2 small file-info-text" style="display: none;">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <span id="fileDetails"></span>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn-custom btn-light-custom me-md-2">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn-custom btn-primary-custom">
+                            <i class="fas fa-upload me-2"></i>Upload Song
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label asp-for="Duration"></label>
-        <input asp-for="Duration" class="form-control" type="time" step="1" />
-        <span asp-validation-for="Duration" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="Genre"></label>
-        <input asp-for="Genre" class="form-control" />
-        <span asp-validation-for="Genre" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label for="audioFile">Archivo de audio</label>
-        <input type="file" name="audioFile" class="form-control" accept=".mp3,.wav,.flac,.m4a" required />
-    </div>
-
-    <button type="submit" class="btn btn-success">Subir Canción</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('audioFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Show file information
+            document.getElementById('fileDetails').textContent = `Selected file: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+            document.getElementById('audioInfo').style.display = 'block';
+
+            // Create audio object to get duration
+            const audio = document.createElement('audio');
+            audio.preload = 'metadata';
+
+            audio.onloadedmetadata = function() {
+                window.URL.revokeObjectURL(audio.src);
+                const duration = audio.duration;
+                const minutes = Math.floor(duration / 60);
+                const seconds = Math.floor(duration % 60);
+                const formattedDuration = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                // Format for time input (HH:MM:SS)
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                const timeFormatted = `${hours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                document.getElementById('durationInput').value = timeFormatted;
+            };
+
+            audio.src = URL.createObjectURL(file);
+        });
+    </script>
 }

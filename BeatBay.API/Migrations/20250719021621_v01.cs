@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BeatBay.API.Migrations
 {
     /// <inheritdoc />
-    public partial class v02 : Migration
+    public partial class v01 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

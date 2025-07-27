@@ -343,7 +343,7 @@ namespace BeatBay.API.Controllers
             }
         }
 
-        // 6. Agregar conexión de usuario hijo
+        // 6. Agregar conexión de usuario hijo (VERSIÓN MEJORADA)
         [HttpPost("add-connection")]
         public async Task<IActionResult> AddConnection(AddConnectionDto dto)
         {
@@ -371,21 +371,41 @@ namespace BeatBay.API.Controllers
             if (childHasSub)
                 return BadRequest(new { message = "El usuario ya tiene su propio plan" });
 
-            var already = await _context.UserConnections
+            // VERIFICAR SI YA ESTÁ CONECTADO ACTIVAMENTE EN CUALQUIER PLAN
+            var activeConnection = await _context.UserConnections
                 .AnyAsync(uc => uc.ChildUserId == dto.ChildUserId && uc.IsActive);
-            if (already)
+            if (activeConnection)
                 return BadRequest(new { message = "El usuario ya está conectado a un plan" });
 
+            // BUSCAR UNA CONEXIÓN INACTIVA EXISTENTE PARA ESTE USUARIO Y SUSCRIPCIÓN
+            var existingConnection = await _context.UserConnections
+                .FirstOrDefaultAsync(uc =>
+                    uc.ParentSubscriptionId == active.Id &&
+                    uc.ChildUserId == dto.ChildUserId &&
+                    !uc.IsActive);
+
+            if (existingConnection != null)
+            {
+                // REACTIVAR LA CONEXIÓN EXISTENTE
+                existingConnection.IsActive = true;
+                existingConnection.ConnectedAt = DateTime.UtcNow; // Actualizar fecha de reconexión
+            }
+            else
+            {
+                // CREAR NUEVA CONEXIÓN SI NO EXISTE UNA PREVIA
+                _context.UserConnections.Add(new UserConnection
+                {
+                    ParentSubscriptionId = active.Id,
+                    ChildUserId = dto.ChildUserId,
+                    ConnectedAt = DateTime.UtcNow,
+                    IsActive = true
+                });
+            }
+
+            // ACTUALIZAR EL PLAN DEL USUARIO HIJO
             child.PlanId = active.PlanId;
             await _userManager.UpdateAsync(child);
 
-            _context.UserConnections.Add(new UserConnection
-            {
-                ParentSubscriptionId = active.Id,
-                ChildUserId = dto.ChildUserId,
-                ConnectedAt = DateTime.UtcNow,
-                IsActive = true
-            });
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Usuario agregado exitosamente al plan" });

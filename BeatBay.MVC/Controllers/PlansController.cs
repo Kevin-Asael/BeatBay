@@ -363,7 +363,7 @@ namespace BeatBay.MVC.Controllers
             {
                 var client = CreateClient();
                 var response = await client.GetAsync($"api/PlanSimulation/search-users?username={Uri.EscapeDataString(username)}");
-                
+
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                     return Json(new List<object>());
 
