@@ -379,5 +379,43 @@ namespace BeatBay.MVC.Controllers
                 return Json(new List<object>());
             }
         }
+
+        // 14. GET /Plans/Details/{id}
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            if (HttpContext.Session.GetString("JwtToken") == null)
+                return RedirectToAction("Login", "vAuth");
+
+            try
+            {
+                var client = CreateClient();
+
+                // Primero obtenemos el historial completo
+                var resp = await client.GetAsync("api/PlanSimulation/history");
+                if (resp.StatusCode == HttpStatusCode.Unauthorized)
+                    return HandleUnauthorized();
+                resp.EnsureSuccessStatusCode();
+
+                var subscriptions = JsonConvert.DeserializeObject<List<PlanSubscriptionDto>>(
+                    await resp.Content.ReadAsStringAsync());
+
+                // Buscamos la suscripción específica
+                var subscription = subscriptions.FirstOrDefault(s => s.Id == id);
+
+                if (subscription == null)
+                {
+                    TempData["ErrorMessage"] = "Suscripción no encontrada.";
+                    return RedirectToAction(nameof(History));
+                }
+
+                return View(subscription);
+            }
+            catch
+            {
+                TempData["ErrorMessage"] = "Error al obtener los detalles de la suscripción.";
+                return RedirectToAction(nameof(History));
+            }
+        }
     }
 }

@@ -172,7 +172,6 @@
         color: #6366f1;
         text-decoration: none;
         font-weight: 500;
-        transition: color 0.3s ease;
     }
 
         .breadcrumb-item a:hover {
@@ -194,7 +193,6 @@
     .plan-card-wrapper {
         display: flex;
         justify-content: center;
-        transition: transform 0.3s ease;
     }
 
     .plan-card {
@@ -202,10 +200,8 @@
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         width: 100%;
         max-width: 350px;
-        position: relative;
         border: 1px solid rgba(99, 102, 241, 0.1);
     }
 
@@ -217,40 +213,13 @@
             right: 0;
             height: 4px;
             background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
-            transition: all 0.3s ease;
         }
-
-        .plan-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2);
-            border-color: rgba(99, 102, 241, 0.3);
-        }
-
-            .plan-card:hover::before {
-                height: 6px;
-            }
-
-            .plan-card:hover::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: radial-gradient( circle at center, rgba(99, 102, 241, 0.08) 0%, transparent 70% );
-                pointer-events: none;
-            }
 
     .card-header {
         background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
         color: white;
         padding: 1.5rem;
         text-align: center;
-        transition: all 0.3s ease;
-    }
-
-    .plan-card:hover .card-header {
-        background: linear-gradient(135deg, #5b5bd6 0%, #7c3aed 100%);
     }
 
     .plan-name {
@@ -280,13 +249,6 @@
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        transition: all 0.3s ease;
-    }
-
-    .plan-card:hover .price {
-        background: linear-gradient(135deg, #5b5bd6 0%, #7c3aed 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
     }
 
     .price-period {
@@ -307,48 +269,23 @@
         align-items: center;
         padding: 0.75rem 0;
         border-bottom: 1px solid rgba(99, 102, 241, 0.05);
-        transition: all 0.3s ease;
     }
 
-    .plan-card:hover .feature-item {
-        transform: translateX(5px);
-    }
-
-    .feature-item:last-child {
-        border-bottom: none;
-    }
+        .feature-item:last-child {
+            border-bottom: none;
+        }
 
     .feature-icon {
         color: #10b981;
         font-size: 1.2rem;
         margin-right: 1rem;
         min-width: 20px;
-        transition: all 0.3s ease;
-    }
-
-    .plan-card:hover .feature-icon {
-        color: #8b5cf6;
-        transform: scale(1.1);
     }
 
     .feature-item span {
         color: #374151;
         font-weight: 500;
         text-align: left;
-    }
-
-    .stats-section {
-        padding-top: 1.5rem;
-        border-top: 2px solid rgba(99, 102, 241, 0.1);
-    }
-
-    .user-count {
-        color: #6b7280;
-        font-weight: 500;
-        background: rgba(99, 102, 241, 0.05);
-        padding: 0.5rem 1rem;
-        border-radius: 50px;
-        display: inline-block;
     }
 
     .card-footer {
@@ -366,41 +303,19 @@
         font-weight: 600;
         width: 100%;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
         text-transform: none;
-        position: relative;
-        overflow: hidden;
-        z-index: 1;
     }
 
-        .purchase-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+        .purchase-btn:hover {
             background: linear-gradient(135deg, #5b5bd6 0%, #7c3aed 100%);
-            z-index: -1;
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
 
-    .plan-card:hover .purchase-btn::before {
-        opacity: 1;
-    }
-
-    .purchase-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(123, 97, 255, 0.5);
-    }
-
-    .purchase-btn:disabled {
-        opacity: 0.7;
-        transform: none;
-        cursor: not-allowed;
-    }
+        .purchase-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%);
+        }
 
     .empty-state {
         text-align: center;
@@ -435,7 +350,6 @@
         border-radius: 50px;
         text-decoration: none;
         font-weight: 600;
-        transition: all 0.3s ease;
         display: inline-block;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(107, 114, 128, 0.2);
@@ -444,50 +358,36 @@
         .back-btn:hover {
             background: rgba(107, 114, 128, 0.15);
             color: #374151;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
     /* Responsive Design */
     @@media (max-width: 768px) {
-        .container {
-            padding: 1rem;
-            min-height: 100vh;
-        }
+        .container
 
-        .page-title {
-            font-size: 2rem;
-        }
-
-        .plans-grid {
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
-
-        .price {
-            font-size: 2rem;
-        }
+    {
+        padding: 1rem;
+        min-height: 100vh;
     }
 
-    /* Animation for loading state */
-    @@keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
+    .page-title {
+        font-size: 2rem;
     }
 
-    .fa-spin {
-        animation: spin 1s linear infinite;
+    .plans-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .price {
+        font-size: 2rem;
+    }
+
     }
 </style>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Enhanced purchase form handling
+        // Essential purchase form handling only
         document.querySelectorAll('.purchase-form').forEach(form => {
             form.addEventListener('submit', function(e) {
                 const btn = this.querySelector('.purchase-btn');
@@ -501,38 +401,6 @@
                 // Update button state
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Redirecting to PayPal...';
-
-                // Add visual feedback
-                btn.style.background = 'linear-gradient(135deg, #6b7280 0%, #9ca3af 100%)';
-            });
-        });
-
-        // Add subtle entrance animations
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        });
-
-        // Observe plan cards for animation
-        document.querySelectorAll('.plan-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            observer.observe(card);
-        });
-
-        // Enhanced hover effects
-        document.querySelectorAll('.plan-card').forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.zIndex = '10';
-            });
-
-            card.addEventListener('mouseleave', function() {
-                this.style.zIndex = '1';
             });
         });
     });

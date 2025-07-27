@@ -5,34 +5,29 @@
 
 <div class="container mt-4">
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-12">
+            <!-- Título principal de la página -->
             <h2 class="mb-4">
                 <i class="fas fa-history me-2"></i>
                 Subscription History
             </h2>
 
+            <!-- Mensaje de error desde TempData o ViewBag -->
             @if (ViewBag.ErrorMessage != null)
             {
-                <div class="alert alert-warning">
+                <div class="alert alert-warning alerta-historial">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     @ViewBag.ErrorMessage
                 </div>
             }
 
-            <!-- Navegación -->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="@Url.Action("Index")">My Plans</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">History</li>
-                </ol>
-            </nav>
-
             @if (Model.Any())
             {
-                <!-- Estadísticas resumidas -->
+                <!-- Filas de estadísticas resumidas -->
                 <div class="row mb-4">
+                    <!-- Total de suscripciones -->
                     <div class="col-md-3">
-                        <div class="card bg-primary text-white stats-card">
+                        <div class="card tarjeta-estadistica bg-primary text-white">
                             <div class="card-body text-center">
                                 <i class="fas fa-clipboard-list fa-3x mb-3"></i>
                                 <h3 class="display-4">@Model.Count</h3>
@@ -40,8 +35,9 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Suscripciones activas -->
                     <div class="col-md-3">
-                        <div class="card bg-success text-white stats-card">
+                        <div class="card tarjeta-estadistica bg-success text-white">
                             <div class="card-body text-center">
                                 <i class="fas fa-check-circle fa-3x mb-3"></i>
                                 <h3 class="display-4">@Model.Count(s => s.IsActive)</h3>
@@ -49,8 +45,9 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Suscripciones canceladas -->
                     <div class="col-md-3">
-                        <div class="card bg-warning text-white stats-card">
+                        <div class="card tarjeta-estadistica bg-warning text-white">
                             <div class="card-body text-center">
                                 <i class="fas fa-times-circle fa-3x mb-3"></i>
                                 <h3 class="display-4">@Model.Count(s => !s.IsActive)</h3>
@@ -58,8 +55,9 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Monto total invertido -->
                     <div class="col-md-3">
-                        <div class="card bg-info text-white stats-card">
+                        <div class="card tarjeta-estadistica bg-info text-white">
                             <div class="card-body text-center">
                                 <i class="fas fa-dollar-sign fa-3x mb-3"></i>
                                 <h3 class="display-4">$@Model.Sum(s => s.PriceUSD).ToString("F2")</h3>
@@ -69,9 +67,9 @@
                     </div>
                 </div>
 
-                <!-- Tabla de historial -->
-                <div class="card shadow-sm">
-                    <div class="card-header bg-gradient-primary text-white">
+                <!-- Tabla detallada de historial de suscripciones -->
+                <div class="card tabla-historial shadow-sm">
+                    <div class="card-header bg-primary text-white encabezado-tabla">
                         <h5 class="mb-0">
                             <i class="fas fa-table me-2"></i>
                             Detailed History
@@ -79,106 +77,111 @@
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-dark">
+                            <table class="table table-hover mb-0 cuerpo-tabla">
+                                <thead class="tabla-oscura">
                                     <tr>
-                                        <th><i class="fas fa-star me-2"></i>Plan</th>
-                                        <th><i class="fas fa-tag me-2"></i>Price</th>
-                                        <th><i class="fas fa-users me-2"></i>Connections</th>
-                                        <th><i class="fas fa-calendar-alt me-2"></i>Start Date</th>
-                                        <th><i class="fas fa-calendar-times me-2"></i>End Date</th>
-                                        <th><i class="fas fa-clock me-2"></i>Duration</th>
-                                        <th><i class="fas fa-info-circle me-2"></i>Status</th>
-                                        <th><i class="fas fa-cog me-2"></i>Actions</th>
+                                        <th>Plan</th>
+                                        <th>Price</th>
+                                        <th>Connections</th>
+                                        <th>Start Date</th>
+                                        <th>End Date</th>
+                                        <th>Duration</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var subscription in Model.OrderByDescending(s => s.StartDate))
+                                    @foreach (var sub in Model.OrderByDescending(s => s.StartDate))
                                     {
-                                        <tr class="subscription-row @(subscription.IsActive ? "table-success" : "table-light")">
+                                        <!-- Fila de suscripción con color según estado -->
+                                        <tr class="@(sub.IsActive ? "fila-activa" : "fila-inactiva")">
+                                            <!-- Columna plan con icono -->
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="plan-icon me-3">
                                                         <i class="fas fa-crown text-warning"></i>
                                                     </div>
                                                     <div>
-                                                        <strong class="text-dark">@subscription.PlanName</strong>
-                                                        <br>
-                                                        <small class="text-muted">ID: #@subscription.Id</small>
+                                                        <strong>@sub.PlanName</strong><br />
+                                                        <small class="text-muted">ID: #@sub.Id</small>
                                                     </div>
                                                 </div>
                                             </td>
+                                            <!-- Columna precio con badge -->
                                             <td>
-                                                <span class="badge bg-primary fs-6 px-3 py-2">
-                                                    $@subscription.PriceUSD.ToString("F2") USD
+                                                <span class="badge badge-precio">
+                                                    $@sub.PriceUSD.ToString("F2") USD
                                                 </span>
                                             </td>
+                                            <!-- Columna conexiones con progress bar -->
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                                    <div class="progress barra-conexiones me-2">
+                                                        @{
+                                                            var porcentaje = sub.MaxConnections > 0 ? (sub.UsedConnections * 100 / sub.MaxConnections) : 0;
+                                                        }
                                                         <div class="progress-bar bg-info"
                                                              role="progressbar"
-                                                             style="width: @(subscription.MaxConnections > 0 ? (subscription.UsedConnections * 100 / subscription.MaxConnections) : 0)%">
+                                                             style="width: @porcentaje%">
                                                         </div>
                                                     </div>
-                                                    <span class="badge bg-info fs-6">
-                                                        @subscription.UsedConnections/@subscription.MaxConnections
+                                                    <span class="badge badge-conexiones">
+                                                        @sub.UsedConnections/@sub.MaxConnections
                                                     </span>
                                                 </div>
                                             </td>
+                                            <!-- Fecha de inicio -->
                                             <td>
-                                                <div class="date-info">
-                                                    <i class="fas fa-calendar me-2 text-success"></i>
-                                                    <span class="fw-bold">@subscription.StartDate.ToString("dd/MM/yyyy")</span>
-                                                    <br>
-                                                    <small class="text-muted">@subscription.StartDate.ToString("HH:mm")</small>
+                                                <div class="fecha-info">
+                                                    <i class="fas fa-calendar text-success me-1"></i>
+                                                    @sub.StartDate.ToString("dd/MM/yyyy HH:mm")
                                                 </div>
                                             </td>
+                                            <!-- Fecha de fin -->
                                             <td>
-                                                <div class="date-info">
-                                                    <i class="fas fa-calendar me-2 text-danger"></i>
-                                                    <span class="fw-bold">@subscription.EndDate.ToString("dd/MM/yyyy")</span>
-                                                    <br>
-                                                    <small class="text-muted">@subscription.EndDate.ToString("HH:mm")</small>
+                                                <div class="fecha-info">
+                                                    <i class="fas fa-calendar-times text-danger me-1"></i>
+                                                    @sub.EndDate.ToString("dd/MM/yyyy HH:mm")
                                                 </div>
                                             </td>
+                                            <!-- Duración -->
                                             <td>
                                                 @{
-                                                    var duration = subscription.EndDate - subscription.StartDate;
-                                                    var durationText = duration.Days > 0 ? $"{duration.Days} days" : "Less than 1 day";
+                                                    var dur = sub.EndDate - sub.StartDate;
+                                                    var textoDur = dur.Days > 0 ? $"{dur.Days} days" : "< 1 day";
                                                 }
-                                                <span class="badge bg-secondary fs-6 px-3 py-2">
+                                                <span class="badge badge-duracion">
                                                     <i class="fas fa-hourglass-half me-1"></i>
-                                                    @durationText
+                                                    @textoDur
                                                 </span>
                                             </td>
+                                            <!-- Estado actual -->
                                             <td>
-                                                @if (subscription.IsActive)
+                                                @if (sub.IsActive)
                                                 {
-                                                    <span class="badge bg-success fs-6 px-3 py-2">
-                                                        <i class="fas fa-check me-1"></i>
+                                                    <span class="badge bg-success badge-estado">
                                                         Active
                                                     </span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
-                                                        <i class="fas fa-ban me-1"></i>
+                                                    <span class="badge bg-secondary badge-estado">
                                                         Canceled
                                                     </span>
                                                 }
                                             </td>
+                                            <!-- Acciones: ver detalles o gestionar -->
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    <button type="button"
-                                                            class="btn btn-outline-info btn-sm"
-                                                            onclick="showSubscriptionDetails(@subscription.Id, '@Html.Raw(Html.Encode(Newtonsoft.Json.JsonConvert.SerializeObject(subscription)))')">
+                                                    <a href="@Url.Action("Details", new { id = sub.Id })"
+                                                       class="btn btn-detalles btn-sm">
                                                         <i class="fas fa-eye me-1"></i>
                                                         View Details
-                                                    </button>
-                                                    @if (subscription.IsActive)
+                                                    </a>
+                                                    @if (sub.IsActive)
                                                     {
-                                                        <a href="@Url.Action("Index")" class="btn btn-outline-primary btn-sm">
+                                                        <a href="@Url.Action("Index")"
+                                                           class="btn btn-gestionar btn-sm">
                                                             <i class="fas fa-cog me-1"></i>
                                                             Manage
                                                         </a>
@@ -192,117 +195,34 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Modal de detalles -->
-                <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header bg-gradient-primary text-white">
-                                <h5 class="modal-title" id="detailModalLabel">
-                                    <i class="fas fa-info-circle me-2"></i>
-                                    Subscription Details
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="info-section">
-                                            <h6 class="text-primary border-bottom pb-2">
-                                                <i class="fas fa-star me-2"></i>
-                                                Plan Information
-                                            </h6>
-                                            <div class="info-item">
-                                                <strong>Name:</strong>
-                                                <span id="modal-plan-name" class="text-dark"></span>
-                                            </div>
-                                            <div class="info-item">
-                                                <strong>Price:</strong>
-                                                <span class="badge bg-primary">$<span id="modal-price"></span> USD</span>
-                                            </div>
-                                            <div class="info-item">
-                                                <strong>Max connections:</strong>
-                                                <span id="modal-max-connections" class="text-dark"></span>
-                                            </div>
-                                            <div class="info-item">
-                                                <strong>Used connections:</strong>
-                                                <span id="modal-used-connections" class="text-dark"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="info-section">
-                                            <h6 class="text-primary border-bottom pb-2">
-                                                <i class="fas fa-calendar me-2"></i>
-                                                Validity Period
-                                            </h6>
-                                            <div class="info-item">
-                                                <strong>Start date:</strong>
-                                                <span id="modal-start-date" class="text-dark"></span>
-                                            </div>
-                                            <div class="info-item">
-                                                <strong>End date:</strong>
-                                                <span id="modal-end-date" class="text-dark"></span>
-                                            </div>
-                                            <div class="info-item">
-                                                <strong>Status:</strong>
-                                                <span id="modal-status"></span>
-                                            </div>
-                                            <div class="info-item">
-                                                <strong>Total duration:</strong>
-                                                <span id="modal-duration" class="text-dark"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr class="my-4">
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <h6 class="text-primary border-bottom pb-2">
-                                            <i class="fas fa-users me-2"></i>
-                                            Connected Users
-                                        </h6>
-                                        <div id="modal-connected-users" class="connected-users-container"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                    <i class="fas fa-times me-2"></i>
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             }
             else
             {
-                <!-- Estado vacío -->
-                <div class="card shadow-sm">
+                <!-- Mensaje cuando no hay historial -->
+                <div class="card estado-vacio">
                     <div class="card-body text-center py-5">
-                        <div class="empty-state">
-                            <i class="fas fa-history text-muted mb-4" style="font-size: 5rem;"></i>
-                            <h3 class="text-muted mb-3">No subscription history</h3>
-                            <p class="text-muted mb-4">You don't have any subscriptions in your history yet.</p>
-                            <a href="@Url.Action("Purchase")" class="btn btn-primary btn-lg">
-                                <i class="fas fa-shopping-cart me-2"></i>
-                                Purchase your first plan
-                            </a>
-                        </div>
+                        <i class="fas fa-history texto-muted mb-4 icono-vacio"></i>
+                        <h3 class="texto-muted mb-3">No subscription history</h3>
+                        <p class="texto-muted mb-4">
+                            You don't have any subscriptions in your history yet.
+                        </p>
+                        <a href="@Url.Action("Purchase")" class="btn btn-comprar-plan btn-lg">
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            Purchase your first plan
+                        </a>
                     </div>
                 </div>
             }
 
-            <!-- Botones de navegación -->
+            <!-- Botones de navegación al final -->
             <div class="row mt-4">
-                <div class="col-md-12 text-center">
-                    <div class="btn-group" role="group">
-                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-lg">
+                <div class="col-12 text-center">
+                    <div class="btn-group grupo-botones" role="group">
+                        <a href="@Url.Action("Index")" class="btn btn-volver-planes btn-lg">
                             <i class="fas fa-arrow-left me-2"></i>
                             Back to My Plans
                         </a>
-                        <a href="@Url.Action("Purchase")" class="btn btn-primary btn-lg">
+                        <a href="@Url.Action("Purchase")" class="btn btn-comprar-plan btn-lg">
                             <i class="fas fa-plus me-2"></i>
                             Purchase New Plan
                         </a>
@@ -314,212 +234,137 @@
 </div>
 
 <style>
+    /* Variables globales en español */
     :root {
-        --primary: #6366f1;
-        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-        --success: #10b981;
-        --success-dark: #059669;
-        --warning: #f59e0b;
-        --danger: #ef4444;
-        --danger-dark: #dc2626;
-        --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        --light-gray: #f8fafc;
-        --dark-gray: #1f2937;
-        --shadow: rgba(0, 0, 0, 0.1);
-        --btn-background: #6366f1; /* Botón Primary */
-        --btn-background-hover: #8b5cf6; /* Hover de Botón Primary */
+        --color-primario: #6366f1;
+        --color-primario-hover: #8b5cf6;
+        --color-exito: #10b981;
+        --color-alerta: #f59e0b;
+        --color-peligro: #ef4444;
+        --fondo-gradiente-principal: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --fondo-claro: #f8fafc;
+        --texto-oscuro: #1f2937;
+        --sombra-clara: rgba(0, 0, 0, 0.1);
     }
 
-    /* Fondo del sitio */
+    /* Fondo general y color de texto */
     body {
-        background: var(--background);
-        color: var(--dark-gray);
+        background: var(--fondo-gradiente-principal);
+        color: var(--texto-oscuro);
     }
 
-    /* Botones */
-    .btn-primary {
-        background-color: var(--btn-background);
-        border-color: var(--btn-background);
-        color: white; /* Asegura que el texto sea blanco */
-    }
-
-        .btn-primary:hover {
-            background-color: var(--btn-background-hover);
-            border-color: var(--btn-background-hover);
-            color: white; /* Asegura que el texto sea blanco */
-        }
-
-    /* Botón de "Volver" en caso de fondo oscuro */
-    .btn-outline-secondary {
-        background-color: rgba(255, 255, 255, 0.7); /* Fondo blanco translúcido */
+    /* Botón para volver al panel de planes */
+    .btn-volver-planes {
+        background-color: rgba(255,255,255,0.7);
         border-color: #fff;
-        color: var(--dark-gray);
+        color: var(--texto-oscuro);
     }
 
-        .btn-outline-secondary:hover {
-            background-color: #fff; /* Fondo blanco sólido al hacer hover */
-            border-color: var(--primary);
-            color: var(--primary);
+        .btn-volver-planes:hover {
+            background-color: #fff;
+            border-color: var(--color-primario);
+            color: var(--color-primario);
         }
 
-    /* Tarjetas y otros contenedores con fondo oscuro */
-    .card {
+    /* Botón para comprar un plan */
+    .btn-comprar-plan {
+        background-color: var(--color-primario);
+        border-color: var(--color-primario);
+        color: #fff;
+    }
+
+        .btn-comprar-plan:hover {
+            background-color: var(--color-primario-hover);
+            border-color: var(--color-primario-hover);
+        }
+
+    /* Tarjetas de estadística */
+    .tarjeta-estadistica {
         border: none;
         border-radius: 15px;
-        box-shadow: 0 2px 4px var(--shadow);
-        background-color: var(--light-gray); /* Fondo claro */
+        box-shadow: 0 2px 4px var(--sombra-clara);
     }
 
-    /* Para las alertas y textos sobre fondos oscuros */
-    .alert-warning {
-        background-color: rgba(245, 158, 11, 0.1);
-        border-color: var(--warning);
-    }
-
-    /* Ajustes para mejorar la visibilidad de los textos */
-    .text-muted {
-        color: var(--dark-gray) !important;
-    }
-
-    .text-success {
-        color: var(--success) !important;
-    }
-
-    .text-danger {
-        color: var(--danger) !important;
-    }
-
-    .text-warning {
-        color: var(--warning) !important;
-    }
-
-    /* Para los íconos */
-    .plan-icon {
-        font-size: 1.5rem;
-        color: white; /* Asegura que los iconos sean blancos para mayor contraste */
-    }
-
-    /* Fondo del modal */
-    .modal-content {
-        background: var(--light-gray);
+    /* Tabla de historial */
+    .tabla-historial {
         border-radius: 15px;
-        box-shadow: 0 2px 4px var(--shadow);
+        overflow: hidden;
     }
 
-    /* Fondo claro para las celdas de la tabla */
-    .table-light {
-        background-color: var(--light-gray);
+    .encabezado-tabla {
+        background: var(--color-primario);
     }
 
-    /* Ajustes para las tarjetas estadísticas */
-    .stats-card {
+    .tabla-oscura th {
+        background: var(--color-primario);
+        color: #fff;
+    }
+
+    /* Estilo de filas según estado */
+    .fila-activa {
+        background-color: rgba(16,185,129,0.1);
+    }
+
+    .fila-inactiva {
+        background-color: rgba(245,158,11,0.1);
+    }
+
+    /* Badge de precio */
+    .badge-precio {
+        background-color: var(--color-primario);
+        color: #fff;
+        padding: 0.5em 1em;
+        border-radius: 0.5rem;
+    }
+
+    /* Barra de conexiones */
+    .barra-conexiones {
+        height: 20px;
+        border-radius: 10px;
+    }
+
+    /* Badges de conexiones y duración */
+    .badge-conexiones {
+        background: var(--color-exito);
+        color: #fff;
+    }
+
+    .badge-duracion {
+        background: var(--fondo-claro);
+        color: var(--texto-oscuro);
+    }
+
+    .badge-estado {
+        padding: 0.3em 0.6em;
+        border-radius: 0.5rem;
+    }
+
+    /* Iconos de fecha */
+    .fecha-info i {
+        margin-right: 0.3em;
+    }
+
+    /* Estado vacío */
+    .estado-vacio {
         border: none;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px var(--shadow);
-        transition: transform 0.3s ease;
-        background-color: var(--light-gray);
-        color: var(--dark-gray); /* Asegura que el texto sea visible */
+        box-shadow: 0 2px 4px var(--sombra-clara);
     }
 
-        .stats-card:hover {
-            transform: translateY(-5px);
-        }
-
-    /* Para los botones del modal */
-    .btn-close-white {
-        color: white;
+    .icono-vacio {
+        font-size: 5rem;
+        color: rgba(0,0,0,0.2);
     }
 
-    /* Estilo para los enlaces */
-    a {
-        color: var(--primary); /* Colores de enlaces */
+    /* Botones de detalles y gestionar dentro de la tabla */
+    .btn-detalles {
+        background: transparent;
+        border: 1px solid var(--color-primario);
+        color: var(--color-primario);
     }
 
-        a:hover {
-            color: var(--primary-gradient); /* Hover sobre enlaces */
-        }
+    .btn-gestionar {
+        background: transparent;
+        border: 1px solid var(--color-primario-hover);
+        color: var(--color-primario-hover);
+    }
 </style>
-
-<script>
-        // Función para mostrar los detalles de una suscripción
-    function showSubscriptionDetails(subscriptionId, subscriptionDataJson) {
-        try {
-            // Convertir el JSON a objeto
-            const subscription = JSON.parse(subscriptionDataJson);
-
-            // Mostrar información básica
-            document.getElementById('modal-plan-name').textContent = subscription.PlanName || 'Not available';
-            document.getElementById('modal-price').textContent = subscription.PriceUSD?.toFixed(2) || '0.00';
-            document.getElementById('modal-max-connections').textContent = subscription.MaxConnections || '0';
-            document.getElementById('modal-used-connections').textContent = subscription.UsedConnections || '0';
-
-            // Formatear fechas
-            const formatDate = (dateString) => {
-                const date = new Date(dateString);
-                return date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            };
-
-            document.getElementById('modal-start-date').textContent = formatDate(subscription.StartDate);
-            document.getElementById('modal-end-date').textContent = formatDate(subscription.EndDate);
-
-            // Calcular duración en días
-            const start = new Date(subscription.StartDate);
-            const end = new Date(subscription.EndDate);
-            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
-            document.getElementById('modal-duration').textContent = days > 0 ? `${days} days` : 'Less than 1 day';
-
-            // Mostrar estado
-            const statusElement = document.getElementById('modal-status');
-            if (subscription.IsActive) {
-                statusElement.innerHTML = '<span class="badge bg-success">Active</span>';
-            } else {
-                statusElement.innerHTML = '<span class="badge bg-warning">Canceled</span>';
-            }
-
-            // Mostrar usuarios conectados
-            const usersContainer = document.getElementById('modal-connected-users');
-            if (subscription.ConnectedUsers?.length > 0) {
-                usersContainer.innerHTML = subscription.ConnectedUsers.map(user => `
-                    <div class="user-card mb-2 p-2 border rounded">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>${user.UserName}</strong>
-                                ${user.Email ? `<div class="small">${user.Email}</div>` : ''}
-                            </div>
-                            <span class="badge ${user.IsActive ? 'bg-success' : 'bg-secondary'}">
-                                ${user.IsActive ? 'Active' : 'Inactive'}
-                            </span>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                usersContainer.innerHTML = '<p class="text-muted">No connected users</p>';
-            }
-
-            // Abrir el modal
-            new bootstrap.Modal('#detailModal').show();
-
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An error occurred while loading details');
-        }
-    }
-
-    // Cuando la página cargue
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animación simple para las tarjetas de estadísticas
-        const cards = document.querySelectorAll('.stats-card');
-        cards.forEach((card, i) => {
-            setTimeout(() => {
-                card.style.transform = 'scale(1)';
-                card.style.opacity = '1';
-            }, i * 100);
-        });
-    });
-</script>
