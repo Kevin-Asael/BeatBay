@@ -17,7 +17,7 @@ namespace BeatBayMVC.Controllers
             _httpClient = httpClientFactory.CreateClient();
         }
 
-        // **Método privado para verificar autorización de Admin**
+        // **Mï¿½todo privado para verificar autorizaciï¿½n de Admin**
         private async Task<bool> IsUserAdminAsync()
         {
             var token = HttpContext.Session.GetString("JwtToken");
@@ -44,7 +44,7 @@ namespace BeatBayMVC.Controllers
             }
         }
 
-        // **Método privado para verificar autorización de Artist**
+        // **Mï¿½todo privado para verificar autorizaciï¿½n de Artist**
         private async Task<bool> IsUserArtistAsync()
         {
             var token = HttpContext.Session.GetString("JwtToken");
@@ -71,18 +71,18 @@ namespace BeatBayMVC.Controllers
             }
         }
 
-        // **Método privado para redirigir si no está autorizado como Admin**
+        // **Mï¿½todo privado para redirigir si no estï¿½ autorizado como Admin**
         private async Task<IActionResult> CheckAdminAuthorizationAndRedirectAsync()
         {
             if (!await IsUserAdminAsync())
             {
-                TempData["Error"] = "No tienes permisos para acceder al panel de administración";
+                TempData["Error"] = "No tienes permisos para acceder al panel de administraciï¿½n";
                 return RedirectToAction("Index", "Home");
             }
             return null;
         }
 
-        // **Método privado para redirigir si no está autorizado como Artist**
+        // **Mï¿½todo privado para redirigir si no estï¿½ autorizado como Artist**
         private async Task<IActionResult> CheckArtistAuthorizationAndRedirectAsync()
         {
             if (!await IsUserArtistAsync())
@@ -93,7 +93,7 @@ namespace BeatBayMVC.Controllers
             return null;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchTerm)
         {
             var userDataJson = HttpContext.Session.GetString("UserData");
             UserDto currentUser = null;
@@ -102,7 +102,7 @@ namespace BeatBayMVC.Controllers
                 currentUser = JsonConvert.DeserializeObject<UserDto>(userDataJson);
             }
 
-            // Si el usuario está logueado, verificar roles y redirigir
+            // Si el usuario estÃ¡ logueado, verificar roles y redirigir
             if (currentUser != null)
             {
                 // Verificar si es Admin
@@ -117,7 +117,46 @@ namespace BeatBayMVC.Controllers
                     return RedirectToAction("IndexArtista", "Home");
                 }
 
-                // Si no es ni Admin ni Artist, mostrar vista normal de usuario
+                // Si hay un tÃ©rmino de bÃºsqueda y el usuario estÃ¡ autenticado
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    try
+                    {
+                        var token = HttpContext.Session.GetString("JwtToken");
+                        _httpClient.DefaultRequestHeaders.Clear();
+                        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+                        // Llamar a la API para obtener todas las canciones
+                        var response = await _httpClient.GetAsync($"{_apiBaseUrl}/songs");
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonContent = await response.Content.ReadAsStringAsync();
+                            var allSongs = JsonConvert.DeserializeObject<List<SongDto>>(jsonContent);
+
+                            // Filtrar las canciones usando LINQ
+                            var searchResults = allSongs?.Where(s =>
+                                s.IsActive && (
+                                    s.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                    s.ArtistName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                                    s.Genre.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                                )).ToList() ?? new List<SongDto>();
+
+                            ViewBag.SearchResults = searchResults.Cast<dynamic>().ToList();
+                            ViewBag.SearchTerm = searchTerm;
+                        }
+                        else
+                        {
+                            ViewBag.SearchResults = new List<dynamic>();
+                            ViewBag.SearchTerm = searchTerm;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error al realizar la bÃºsqueda");
+                        ViewBag.SearchResults = new List<dynamic>();
+                        ViewBag.SearchTerm = searchTerm;
+                    }
+                }
             }
 
             ViewBag.CurrentUser = currentUser;
@@ -128,11 +167,11 @@ namespace BeatBayMVC.Controllers
         // **Vista de Artista protegida**
         public async Task<IActionResult> IndexArtista()
         {
-            // Verificar autorización antes de mostrar el panel de artista
+            // Verificar autorizaciï¿½n antes de mostrar el panel de artista
             var authCheck = await CheckArtistAuthorizationAndRedirectAsync();
             if (authCheck != null) return authCheck;
 
-            // Si llega aquí, el usuario es artista
+            // Si llega aquï¿½, el usuario es artista
             var userDataJson = HttpContext.Session.GetString("UserData");
             UserDto currentUser = null;
             if (!string.IsNullOrEmpty(userDataJson))
@@ -149,11 +188,11 @@ namespace BeatBayMVC.Controllers
         // **Vista de Admin protegida**
         public async Task<IActionResult> IndexAdmin()
         {
-            // Verificar autorización antes de mostrar el panel
+            // Verificar autorizaciï¿½n antes de mostrar el panel
             var authCheck = await CheckAdminAuthorizationAndRedirectAsync();
             if (authCheck != null) return authCheck;
 
-            // Si llega aquí, el usuario es admin
+            // Si llega aquï¿½, el usuario es admin
             var userDataJson = HttpContext.Session.GetString("UserData");
             UserDto currentUser = null;
             if (!string.IsNullOrEmpty(userDataJson))

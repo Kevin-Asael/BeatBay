@@ -25,53 +25,14 @@
             flex-direction: column;
         }
 
-        /* Barra de navegación superior */
-        .top-navbar {
-            background-color: rgba(0, 0, 0, 0.8);
-            height: 60px;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
-        }
-
-        .nav-logo {
-            color: white;
-            font-weight: bold;
-            font-size: 1.5em;
-            margin-right: 30px;
-        }
-
-        .nav-items {
-            display: flex;
-            gap: 20px;
-        }
-
-        .nav-item {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 8px 12px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-
-            .nav-item:hover {
-                background-color: rgba(255, 255, 255, 0.1);
-            }
-
         /* Contenedor principal */
         .main-container {
             flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 100px 20px 120px; /* Espacio para las barras */
+            padding: 100px 20px 150px; /* Aumenté el padding inferior para separar la barra */
+            margin-bottom: 80px; /* Espacio adicional para la barra de reproducción */
         }
 
         /* Barra de reproducción inferior */
@@ -247,6 +208,7 @@
             box-shadow: var(--card-shadow);
             transition: all 0.3s ease;
             position: relative;
+            margin-bottom: 30px; /* Espacio adicional en la parte inferior */
         }
 
             .music-player:hover {
@@ -287,20 +249,17 @@
         }
 
         @@keyframes shine {
-            0%
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            }
 
-        {
-            transform: translateX(-100%) translateY(-100%) rotate(45deg);
-        }
+            50% {
+                transform: translateX(0%) translateY(0%) rotate(45deg);
+            }
 
-        50% {
-            transform: translateX(0%) translateY(0%) rotate(45deg);
-        }
-
-        100% {
-            transform: translateX(100%) translateY(100%) rotate(45deg);
-        }
-
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
+            }
         }
 
         .song-info {
@@ -509,29 +468,23 @@
 
         /* Animaciones mejoradas */
         @@keyframes wave {
-            0%, 100%
+            0%, 100% {
+                transform: scale(1);
+            }
 
-        {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.03);
-        }
-
+            50% {
+                transform: scale(1.03);
+            }
         }
 
         @@keyframes pulse {
-            0%, 100%
+            0%, 100% {
+                opacity: 1;
+            }
 
-        {
-            opacity: 1;
-        }
-
-        50% {
-            opacity: 0.7;
-        }
-
+            50% {
+                opacity: 0.7;
+            }
         }
 
         .playing .play-btn {
@@ -544,37 +497,23 @@
 
         /* Responsivo */
         @@media (max-width: 480px) {
-            .music-player
+            .music-player {
+                padding: 25px;
+            }
 
-        {
-            padding: 25px;
-        }
+            .album-art {
+                width: 200px;
+                height: 200px;
+                font-size: 3em;
+            }
 
-        .album-art {
-            width: 200px;
-            height: 200px;
-            font-size: 3em;
-        }
-
-        .song-title {
-            font-size: 1.5em;
-        }
-
+            .song-title {
+                font-size: 1.5em;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Barra de navegación superior -->
-    <nav class="top-navbar">
-        <div class="nav-logo">BeatBay</div>
-        <div class="nav-items">
-            <a href="https://localhost:7194" class="nav-item">Home</a>
-            <a href="https://localhost:7194/Songs" class="nav-item">Songs</a>
-            <a href="https://localhost:7194/Playlists" class="nav-item">Playlists</a>
-            <a href="https://localhost:7194/ArtistStatistics" class="nav-item">Artist Statistics</a>
-        </div>
-    </nav>
-
     <!-- Contenido principal -->
     <div class="main-container">
         <div class="music-player" id="playerContainer">
@@ -586,9 +525,7 @@
             </div>
 
             <div class="controls">
-                <button class="control-btn" id="prevBtn" title="Anterior">⏮️</button>
                 <button class="control-btn play-btn" id="playBtn">▶️</button>
-                <button class="control-btn" id="nextBtn" title="Siguiente">⏭️</button>
                 <button class="control-btn loop-btn" id="loopBtn" title="Repetir canción">🔁</button>
             </div>
 
@@ -634,9 +571,7 @@
 
         <div class="player-controls">
             <div class="player-main-controls">
-                <button class="player-btn" id="playerPrevBtn" title="Anterior">⏮️</button>
                 <button class="player-btn player-play-btn" id="playerPlayBtn">▶️</button>
-                <button class="player-btn" id="playerNextBtn" title="Siguiente">⏭️</button>
             </div>
             <div class="player-progress-container">
                 <div class="player-progress-bar" id="playerProgressBar">
@@ -679,14 +614,10 @@
                 // Controles principales
                 this.playBtn = document.getElementById('playBtn');
                 this.loopBtn = document.getElementById('loopBtn');
-                this.prevBtn = document.getElementById('prevBtn');
-                this.nextBtn = document.getElementById('nextBtn');
 
                 // Controles de la barra de reproducción
                 this.playerPlayBtn = document.getElementById('playerPlayBtn');
                 this.playerLoopBtn = document.getElementById('playerLoopBtn');
-                this.playerPrevBtn = document.getElementById('playerPrevBtn');
-                this.playerNextBtn = document.getElementById('playerNextBtn');
 
                 // Elementos de progreso
                 this.progressBar = document.getElementById('progressBar');
@@ -725,14 +656,10 @@
                 // Controles principales
                 this.playBtn.addEventListener('click', () => this.togglePlay());
                 this.loopBtn.addEventListener('click', () => this.toggleLoop());
-                this.prevBtn.addEventListener('click', () => this.previousTrack());
-                this.nextBtn.addEventListener('click', () => this.nextTrack());
 
                 // Controles de la barra de reproducción
                 this.playerPlayBtn.addEventListener('click', () => this.togglePlay());
                 this.playerLoopBtn.addEventListener('click', () => this.toggleLoop());
-                this.playerPrevBtn.addEventListener('click', () => this.previousTrack());
-                this.playerNextBtn.addEventListener('click', () => this.nextTrack());
 
                 // Progreso
                 this.progressBar.addEventListener('click', (e) => this.seekTo(e));
@@ -765,52 +692,52 @@
                 });
             }
 
-                    loadSong(songData) {
-            // Guardar progreso de la canción anterior si está reproduciéndose
-            if (this.isPlaying && this.currentSong) {
-                this.audio.pause(); // Pausar primero para capturar el tiempo exacto
-                this.savePlayProgress();
+            loadSong(songData) {
+                // Guardar progreso de la canción anterior si está reproduciéndose
+                if (this.isPlaying && this.currentSong) {
+                    this.audio.pause(); // Pausar primero para capturar el tiempo exacto
+                    this.savePlayProgress();
+                }
+
+                // Actualizar la canción actual
+                this.currentSong = songData;
+                this.audio.src = songData.streamingUrl;
+
+                // Resetear el estado del reproductor
+                this.hasStartedPlaying = false;
+                this.totalPlayedTime = 0;
+                this.currentSessionTime = 0;
+                this.playCountRegistered = false;
+
+                // Resetear elementos visuales
+                this.statusEl.textContent = '';
+                this.playTimeEl.textContent = '0:00';
+                this.currentTimeEl.textContent = '0:00';
+                this.playerCurrentTimeEl.textContent = '0:00';
+                this.progressFill.style.width = '0%';
+                this.playerProgressFill.style.width = '0%';
+
+                // Actualizar información de la canción
+                this.songTitleEl.textContent = songData.title;
+                this.artistNameEl.textContent = songData.artistName;
+                this.albumArt.textContent = songData.title.charAt(0).toUpperCase();
+                this.playerTrackTitle.textContent = songData.title;
+                this.playerTrackArtist.textContent = songData.artistName;
+                this.playerAlbumArt.textContent = songData.title.charAt(0).toUpperCase();
+                this.playCountEl.textContent = songData.playCount || '0'; // Manejo seguro del valor
+
+                // Configurar volumen
+                this.audio.volume = this.volumeSlider.value;
+                this.playerVolumeSlider.value = this.volumeSlider.value;
+
+                // Reiniciar controles de reproducción si estaba reproduciendo
+                if (this.isPlaying) {
+                    this.isPlaying = false;
+                    this.playBtn.textContent = '▶️';
+                    this.playerPlayBtn.textContent = '▶️';
+                    this.playerContainer.classList.remove('playing');
+                }
             }
-
-            // Actualizar la canción actual
-            this.currentSong = songData;
-            this.audio.src = songData.streamingUrl;
-
-            // Resetear el estado del reproductor
-            this.hasStartedPlaying = false;
-            this.totalPlayedTime = 0;
-            this.currentSessionTime = 0;
-            this.playCountRegistered = false;
-
-            // Resetear elementos visuales
-            this.statusEl.textContent = '';
-            this.playTimeEl.textContent = '0:00';
-            this.currentTimeEl.textContent = '0:00';
-            this.playerCurrentTimeEl.textContent = '0:00';
-            this.progressFill.style.width = '0%';
-            this.playerProgressFill.style.width = '0%';
-
-            // Actualizar información de la canción
-            this.songTitleEl.textContent = songData.title;
-            this.artistNameEl.textContent = songData.artistName;
-            this.albumArt.textContent = songData.title.charAt(0).toUpperCase();
-            this.playerTrackTitle.textContent = songData.title;
-            this.playerTrackArtist.textContent = songData.artistName;
-            this.playerAlbumArt.textContent = songData.title.charAt(0).toUpperCase();
-            this.playCountEl.textContent = songData.playCount || '0'; // Manejo seguro del valor
-
-            // Configurar volumen
-            this.audio.volume = this.volumeSlider.value;
-            this.playerVolumeSlider.value = this.volumeSlider.value;
-
-            // Reiniciar controles de reproducción si estaba reproduciendo
-            if (this.isPlaying) {
-                this.isPlaying = false;
-                this.playBtn.textContent = '▶️';
-                this.playerPlayBtn.textContent = '▶️';
-                this.playerContainer.classList.remove('playing');
-            }
-        }
 
             async togglePlay() {
                 if (this.isPlaying) {
@@ -843,57 +770,47 @@
                 }
             }
 
-            previousTrack() {
-                // Implementar navegación anterior
-                this.statusEl.textContent = 'Función en desarrollo';
-            }
-
-            nextTrack() {
-                // Implementar navegación siguiente
-                this.statusEl.textContent = 'Función en desarrollo';
-            }
-
             async savePlayProgress() {
-            if (!this.currentSong || !this.audio || !this.isPlaying) return;
+                if (!this.currentSong || !this.audio || !this.isPlaying) return;
 
-            const currentTime = Math.floor(this.audio.currentTime);
-            const timePlayed = currentTime - this.currentSessionTime;
+                const currentTime = Math.floor(this.audio.currentTime);
+                const timePlayed = currentTime - this.currentSessionTime;
 
-            // Solo registrar si hay al menos 1 segundo de reproducción
-            if (timePlayed < 1) return;
+                // Solo registrar si hay al menos 1 segundo de reproducción
+                if (timePlayed < 1) return;
 
-            try {
-                const response = await fetch(`/Songs/RecordPlay/${this.currentSong.id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                    },
-                    body: JSON.stringify({
-                        DurationPlayedSeconds: timePlayed,
-                        RegisterPlay: currentTime >= this.playTimeThreshold && !this.playCountRegistered
-                    })
-                });
+                try {
+                    const response = await fetch(`/Songs/RecordPlay/${this.currentSong.id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify({
+                            DurationPlayedSeconds: timePlayed,
+                            RegisterPlay: currentTime >= this.playTimeThreshold && !this.playCountRegistered
+                        })
+                    });
 
-                if (response.ok) {
-                    const result = await response.json();
+                    if (response.ok) {
+                        const result = await response.json();
 
-                    // Actualizar UI
-                    this.totalPlayedTime += timePlayed;
-                    this.playTimeEl.textContent = this.formatTime(this.totalPlayedTime);
-                    this.currentSessionTime = currentTime;
+                        // Actualizar UI
+                        this.totalPlayedTime += timePlayed;
+                        this.playTimeEl.textContent = this.formatTime(this.totalPlayedTime);
+                        this.currentSessionTime = currentTime;
 
-                    if (result.countedAsPlay) {
-                        this.playCountRegistered = true;
-                        this.playCountEl.textContent = (parseInt(this.playCountEl.textContent) + 1).toString();
+                        if (result.countedAsPlay) {
+                            this.playCountRegistered = true;
+                            this.playCountEl.textContent = (parseInt(this.playCountEl.textContent) + 1).toString();
+                        }
+                    } else {
+                        console.error('Error en la respuesta:', await response.text());
                     }
-                } else {
-                    console.error('Error en la respuesta:', await response.text());
+                } catch (error) {
+                    console.error('Error al guardar progreso:', error);
                 }
-            } catch (error) {
-                console.error('Error al guardar progreso:', error);
             }
-        }
 
             seekTo(event) {
                 if (!this.audio.duration) return;
@@ -907,24 +824,24 @@
             }
 
             updateProgress() {
-            if (this.audio.duration) {
-                const currentTime = this.audio.currentTime;
-                const percent = (currentTime / this.audio.duration) * 100;
+                if (this.audio.duration) {
+                    const currentTime = this.audio.currentTime;
+                    const percent = (currentTime / this.audio.duration) * 100;
 
-                // Actualizar barras de progreso
-                this.progressFill.style.width = percent + '%';
-                this.playerProgressFill.style.width = percent + '%';
+                    // Actualizar barras de progreso
+                    this.progressFill.style.width = percent + '%';
+                    this.playerProgressFill.style.width = percent + '%';
 
-                // Actualizar tiempos mostrados
-                this.currentTimeEl.textContent = this.formatTime(currentTime);
-                this.playerCurrentTimeEl.textContent = this.formatTime(currentTime);
+                    // Actualizar tiempos mostrados
+                    this.currentTimeEl.textContent = this.formatTime(currentTime);
+                    this.playerCurrentTimeEl.textContent = this.formatTime(currentTime);
 
-                // Verificar si debemos contar como reproducción (10 segundos)
-                if (currentTime >= this.playTimeThreshold && !this.playCountRegistered) {
-                    this.savePlayProgress();
+                    // Verificar si debemos contar como reproducción (10 segundos)
+                    if (currentTime >= this.playTimeThreshold && !this.playCountRegistered) {
+                        this.savePlayProgress();
+                    }
                 }
             }
-        }
 
             updateDuration() {
                 if (this.audio.duration) {

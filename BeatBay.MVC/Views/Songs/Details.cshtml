@@ -38,6 +38,13 @@
                             <span>Estado: @(Model.IsActive ? "Activa" : "Inactiva")</span>
                         </div>
                     </div>
+
+                    <!-- Botón movido aquí -->
+                    <div class="back-button" style="margin-top: 2rem;">
+                        <a asp-controller="Home" asp-action="Index" class="btn-back">
+                            <i class="fas fa-arrow-left"></i> Volver al inicio
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -45,23 +52,8 @@
             <div class="col-md-7">
                 <div class="player-container">
                     @Html.Partial("_PlayerPartial")
-
-                    <div class="player-actions">
-                        <button class="btn-action">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                        <button class="btn-action">
-                            <i class="fas fa-share-alt"></i>
-                        </button>
-                    </div>
                 </div>
             </div>
-        </div>
-
-        <div class="back-button">
-            <a asp-action="Index" class="btn-back">
-                <i class="fas fa-arrow-left"></i> Volver al listado
-            </a>
         </div>
     </div>
 </div>
@@ -79,9 +71,10 @@
         }
     });
 </script>
+<br>
+<br>
 
 <style>
-    /* Paleta de colores basada en tu código */
     :root {
         --primary-color: #6366f1;
         --primary-hover: #8b5cf6;
@@ -181,26 +174,6 @@
         box-shadow: var(--card-shadow);
     }
 
-    .player-actions {
-        display: flex;
-        justify-content: center;
-        gap: 1.5rem;
-        margin-top: 2rem;
-    }
-
-    .btn-action {
-        background: transparent;
-        border: none;
-        color: var(--primary-color);
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-        .btn-action:hover {
-            color: var(--primary-hover);
-            transform: scale(1.1);
-        }
 
     .btn-back {
         display: inline-flex;
@@ -221,7 +194,6 @@
         }
 
     .back-button {
-        margin-top: 2rem;
         text-align: center;
     }
 </style>

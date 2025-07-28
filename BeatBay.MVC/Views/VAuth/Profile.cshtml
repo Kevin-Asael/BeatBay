@@ -307,7 +307,7 @@
                         <div class="profile-avatar mb-4">
                             <i class="fas fa-user-circle"></i>
                         </div>
-                        <h3 class="mb-3">@Model?.Name</h3>
+                        <h3 class="mb-3 text-white">@Model?.Name</h3>
                         <p class="text-muted mb-4">@Model?.UserName</p>
 
                         <div class="d-grid gap-2 mb-4">
@@ -334,7 +334,7 @@
                                 </div>
                                 <div>
                                     <small class="text-muted">Email</small>
-                                    <p class="mb-0">@Model?.Email</p>
+                                    <p class="mb-0 text-white">@Model?.Email</p>
                                 </div>
                             </div>
 
@@ -344,7 +344,7 @@
                                 </div>
                                 <div>
                                     <small class="text-muted">Member since</small>
-                                    <p class="mb-0">@Model?.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                                    <p class="mb-0 text-white">@Model?.CreatedAt.ToString("MMMM dd, yyyy")</p>
                                 </div>
                             </div>
 
@@ -354,7 +354,7 @@
                                 </div>
                                 <div>
                                     <small class="text-muted">Status</small>
-                                    <p class="mb-0">@(Model?.IsActive == true ? "Active" : "Inactive")</p>
+                                    <p class="mb-0 text-white">@(Model?.IsActive == true ? "Active" : "Inactive")</p>
                                 </div>
                             </div>
 
@@ -364,7 +364,7 @@
                                 </div>
                                 <div>
                                     <small class="text-muted">Bio</small>
-                                    <p class="mb-0">@(Model?.Bio ?? "Tell us about yourself...")</p>
+                                    <p class="mb-0 text-white">@(Model?.Bio ?? "Tell us about yourself...")</p>
                                 </div>
                             </div>
                         </div>
@@ -424,7 +424,7 @@
                                     <i class="fas fa-user-shield text-primary"></i>
                                 </div>
                                 <div>
-                                    <strong>Account Security</strong>
+                                    <strong class="text-white">Account Security</strong>
                                     <p class="text-muted mb-0">Two-factor authentication available</p>
                                 </div>
                             </div>
@@ -436,8 +436,8 @@
                                     <i class="fas fa-headphones text-success"></i>
                                 </div>
                                 <div>
-                                    <strong>Audio Quality</strong>
-                                    <p class="text-muted mb-0">@(isPremium ? "High quality (Premium)" : "Standard quality")</p>
+                                    <strong class="text-white">Skips per Song</strong>
+                                    <p class="text-muted mb-0">@(isPremium ? "Unlimited (Premium)" : "No Skips")</p>
                                 </div>
                             </div>
                         </div>
@@ -452,7 +452,7 @@
                         <div class="security-card">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <div>
-                                    <h6 class="mb-1">Two-Factor Authentication</h6>
+                                    <h6 class="mb-1 text-white">Two-Factor Authentication</h6>
                                     <p class="text-muted small mb-0">Add an extra layer of security to your account</p>
                                 </div>
                                 <div id="twoFactorStatus">

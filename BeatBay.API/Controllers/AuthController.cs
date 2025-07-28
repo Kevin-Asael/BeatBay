@@ -636,31 +636,6 @@ El equipo de BeatBay";
             return Ok(userDto);
         }
 
-        // **Desactivar Usuario (Solo admin)**
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-                return NotFound();
-
-            user.IsActive = false;
-            await _context.SaveChangesAsync();
-
-            // Log admin action
-            var adminUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var log = new AdminActionLog
-            {
-                AdminUserId = adminUserId,
-                ActionType = "Deactivate User",
-                Description = $"Deactivated user: {user.UserName}"
-            };
-            _context.AdminActionLogs.Add(log);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "User deactivated successfully" });
-        }
 
         // **Verificar estado de 2FA**
         [HttpGet("2fa-status")]

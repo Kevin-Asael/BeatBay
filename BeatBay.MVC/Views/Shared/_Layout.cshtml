@@ -8,7 +8,64 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
     <style>
-        /* Estilos para el dropdown del usuario */
+        /* Variables de colores modernos */
+        :root {
+            --primary: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Solo estilos para la navbar mejorada */
+        .navbar {
+            background: var(--bg-gradient) !important;
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white !important;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+            .navbar-brand:hover {
+                transform: translateY(-1px);
+            }
+
+            .navbar-brand i {
+                background: var(--primary-gradient);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-right: 0.5rem;
+            }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-weight: 500;
+            padding: 0.6rem 1rem !important;
+            border-radius: 6px;
+            margin: 0 0.1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+            .nav-link:hover {
+                color: white !important;
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-1px);
+            }
+
+            .nav-link i {
+                margin-right: 0.5rem;
+                width: 16px;
+                text-align: center;
+            }
+
+        /* Estilos mejorados para el dropdown del usuario */
         .user-dropdown {
             position: relative;
         }
@@ -16,61 +73,157 @@
         .user-dropdown-toggle {
             display: flex;
             align-items: center;
-            background: transparent;
-            border: none;
-            color: rgba(255, 255, 255, 0.75);
-            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 0.6rem 1rem;
             cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
 
             .user-dropdown-toggle:hover {
+                background: rgba(255, 255, 255, 0.2);
                 color: white;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
             }
 
         .user-name {
-            margin-right: 8px;
+            margin-right: 0.75rem;
             font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .user-dropdown-menu {
             position: absolute;
             right: 0;
             top: 100%;
-            background: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            min-width: 160px;
+            margin-top: 0.5rem;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            min-width: 180px;
             z-index: 1000;
             display: none;
+            overflow: hidden;
         }
 
         .user-dropdown.show .user-dropdown-menu {
             display: block;
+            animation: slideDown 0.2s ease;
+        }
+
+        @@keyframes slideDown {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         }
 
         .dropdown-item {
-            padding: 8px 16px;
+            padding: 0.75rem 1rem;
             display: flex;
             align-items: center;
-            color: #212529;
+            color: #333;
             text-decoration: none;
             white-space: nowrap;
+            transition: all 0.2s ease;
+            font-weight: 500;
         }
 
             .dropdown-item:hover {
-                background-color: #f8f9fa;
+                background: rgba(99, 102, 241, 0.1);
+                color: var(--primary);
             }
 
             .dropdown-item i {
-                width: 20px;
-                margin-right: 10px;
+                width: 18px;
+                margin-right: 0.75rem;
                 text-align: center;
+                font-size: 0.9rem;
             }
-    </style>
+
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(0, 0, 0, 0.1);
+            margin: 0.25rem 0;
+        }
+
+        /* Botón de logout */
+        .dropdown-item[type="submit"] {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+            .dropdown-item[type="submit"]:hover {
+                background: rgba(239, 68, 68, 0.1);
+                color: #ef4444;
+            }
+
+        /* Navbar toggler mejorado */
+        .navbar-toggler {
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.4rem 0.6rem;
+            border-radius: 4px;
+        }
+
+            .navbar-toggler:focus {
+                box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+            }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        /* Loading indicator */
+        .loading-menu {
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
+            padding: 0.6rem 1rem;
+        }
+
+        /* Hidden initially */
+        .role-menu {
+            display: none;
+        }
+
+            .role-menu.show {
+                display: contents;
+            }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .navbar-nav .nav-link
+
+        {
+            margin: 0.1rem 0;
+        }
+
+        .user-dropdown-toggle {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        }</style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-primary border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <i class="fas fa-music"></i> BeatBay
@@ -80,73 +233,117 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav flex-grow-1" id="mainNavbar">
+                        <!-- Home siempre visible -->
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
                                 <i class="fas fa-home"></i> Home
                             </a>
                         </li>
+
+                        <!-- Menú dinámico basado en roles -->
                         @if (Context.Session.GetString("JwtToken") != null)
                         {
+                            <!-- Indicador de carga -->
+                            <li class="nav-item loading-menu" id="loadingMenu">
+                                <span><i class="fas fa-spinner fa-spin"></i> Cargando menú...</span>
+                            </li>
+
+                            <!-- Menú para USUARIOS (Role: User) -->
+                            <div class="role-menu" id="userMenu">
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Songs" asp-action="Index">
+                                <a class="nav-link" href="/Songs">
                                     <i class="fas fa-music"></i> Songs
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="Playlists" asp-action="Index">
+                                <a class="nav-link" href="/Playlists">
                                     <i class="fas fa-list"></i> Playlists
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-controller="ArtistStatistics" asp-action="Index">
-                                    <i class="fas fa-chart-line"></i> Estadísticas Artista
+                                <a class="nav-link" href="/Plans">
+                                    <i class="fas fa-crown"></i> Plans
                                 </a>
                             </li>
-                        }
-                    </ul>
-                    <ul class="navbar-nav">
-                        @if (Context.Session.GetString("JwtToken") != null)
-                        {
-                            var userDataJson = Context.Session.GetString("UserData");
-                            var userData = !string.IsNullOrEmpty(userDataJson) ? Newtonsoft.Json.JsonConvert.DeserializeObject<BeatBay.DTOs.UserDto>(userDataJson) : null;
+                    </div>
 
-                            <li class="nav-item user-dropdown" id="userDropdown">
-                                <button class="user-dropdown-toggle" onclick="toggleUserDropdown()">
-                                    <span class="user-name">@(userData?.Name ?? userData?.UserName ?? "User")</span>
-                                    <i class="fas fa-user-circle fa-lg"></i>
-                                </button>
-                                <div class="user-dropdown-menu">
-                                    @if (!Context.Request.Path.Value.Contains("VAuth/Profile"))
-                                    {
-                                        <a class="dropdown-item" asp-controller="VAuth" asp-action="Profile">
-                                            <i class="fas fa-user"></i> Profile
-                                        </a>
-                                        <div class="dropdown-divider"></div>
-                                    }
-                                    <form asp-controller="VAuth" asp-action="Logout" method="post">
-                                        <button type="submit" class="dropdown-item" style="background:none; border:none; width:100%; text-align:left;">
-                                            <i class="fas fa-sign-out-alt"></i> Logout
-                                        </button>
-                                    </form>
-                                </div>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="VAuth" asp-action="Login">
-                                    <i class="fas fa-sign-in-alt"></i> Login
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="VAuth" asp-action="Register">
-                                    <i class="fas fa-user-plus"></i> Register
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </div>
+                    <!-- Menú para ARTISTAS (Role: Artist) -->
+                    <div class="role-menu" id="artistMenu">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/ArtistStatistics">
+                                <i class="fas fa-chart-line"></i> Estadísticas Artista
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Songs/Create">
+                                <i class="fas fa-upload"></i> Subir Canción
+                            </a>
+                        </li>
+                    </div>
+
+                    <!-- Menú para ADMINISTRADORES (Role: Admin) -->
+                    <div class="role-menu" id="adminMenu">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/AdminStatistics">
+                                <i class="fas fa-chart-bar"></i> Estadísticas Admin
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Admin">
+                                <i class="fas fa-users-cog"></i> Manejar Usuarios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Songs">
+                                <i class="fas fa-music"></i> Manejar Canciones
+                            </a>
+                        </li>
+                    </div>
+                }
+                </ul>
+                <ul class="navbar-nav">
+                    @if (Context.Session.GetString("JwtToken") != null)
+                    {
+                        var userDataJson = Context.Session.GetString("UserData");
+                        var userData = !string.IsNullOrEmpty(userDataJson) ? Newtonsoft.Json.JsonConvert.DeserializeObject<BeatBay.DTOs.UserDto>(userDataJson) : null;
+
+                        <li class="nav-item user-dropdown" id="userDropdown">
+                            <button class="user-dropdown-toggle" onclick="toggleUserDropdown()">
+                                <span class="user-name">@(userData?.Name ?? userData?.UserName ?? "User")</span>
+                                <i class="fas fa-user-circle fa-lg"></i>
+                            </button>
+                            <div class="user-dropdown-menu">
+                                @if (!Context.Request.Path.Value.Contains("VAuth/Profile"))
+                                {
+                                    <a class="dropdown-item" asp-controller="VAuth" asp-action="Profile">
+                                        <i class="fas fa-user"></i> Profile
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                }
+                                <form asp-controller="VAuth" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt"></i> Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="VAuth" asp-action="Login">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="VAuth" asp-action="Register">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
             </div>
         </nav>
     </header>
@@ -179,15 +376,197 @@
         </main>
     </div>
 
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     <script>
+        // Solo ejecutar si hay un usuario logueado
+        @if (Context.Session.GetString("JwtToken") != null)
+        {
+                <text>
+                // Función para obtener el rol del usuario desde la API
+                async function getUserRole() {
+                    const token = '@Html.Raw(Context.Session.GetString("JwtToken"))';
+                    if (!token) {
+                        console.log('No hay token disponible');
+                        return null;
+                    }
+
+                    try {
+                        console.log('Obteniendo rol del usuario desde API...');
+                        console.log('Token:', token.substring(0, 50) + '...');
+
+                        const response = await fetch('https://localhost:7037/api/Auth/user-roles', {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': 'Bearer ' + token,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        console.log('Response status:', response.status);
+                        console.log('Response ok:', response.ok);
+
+                        if (response.ok) {
+                            const responseText = await response.text();
+                            console.log('Response raw text:', responseText);
+
+                            let role;
+                            try {
+                                // Intentar parsear como JSON
+                                role = JSON.parse(responseText);
+                            } catch (jsonError) {
+                                console.log('No es JSON válido, usando como string:', responseText);
+                                // Si no es JSON, usar directamente como string
+                                role = responseText.replace(/"/g, ''); // Remover comillas si las tiene
+                            }
+
+                            console.log('Rol procesado:', role, typeof role);
+                            return role;
+                        } else {
+                            const errorText = await response.text();
+                            console.error('Error obteniendo rol:', response.status, response.statusText);
+                            console.error('Error response:', errorText);
+                            if (response.status === 401) {
+                                console.log('Token expirado, redirigiendo al login...');
+                                window.location.href = '/VAuth/Login';
+                            }
+                            return null;
+                        }
+                    } catch (error) {
+                        console.error('Error en la petición de rol:', error);
+                        console.error('Error details:', error.message);
+                        return null;
+                    }
+                }
+
+                // Función para mostrar el menú correcto basado en el rol
+                function showRoleBasedMenu(userRole) {
+                    console.log('=== MOSTRANDO MENÚ ===');
+                    console.log('Rol recibido:', userRole, typeof userRole);
+
+                    // Ocultar indicador de carga
+                    const loadingMenu = document.getElementById('loadingMenu');
+                    if (loadingMenu) {
+                        loadingMenu.style.display = 'none';
+                        console.log('Indicador de carga ocultado');
+                    }
+
+                    // Ocultar todos los menús primero
+                    const allMenus = document.querySelectorAll('.role-menu');
+                    console.log('Menús encontrados:', allMenus.length);
+                    allMenus.forEach(menu => {
+                        menu.classList.remove('show');
+                        console.log('Menú ocultado:', menu.id);
+                    });
+
+                    // Limpiar el rol de espacios y comillas
+                    const cleanRole = userRole ? userRole.toString().trim().replace(/"/g, '') : '';
+                    console.log('Rol limpio:', cleanRole);
+
+                    // Mostrar el menú correspondiente al rol
+                    let menuToShow = null;
+                    let menuId = '';
+
+                    if (cleanRole === 'User') {
+                        menuId = 'userMenu';
+                        menuToShow = document.getElementById(menuId);
+                        console.log('Preparando menú de Usuario');
+                    } else if (cleanRole === 'Artist') {
+                        menuId = 'artistMenu';
+                        menuToShow = document.getElementById(menuId);
+                        console.log('Preparando menú de Artista');
+                    } else if (cleanRole === 'Admin') {
+                        menuId = 'adminMenu';
+                        menuToShow = document.getElementById(menuId);
+                        console.log('Preparando menú de Admin');
+                    } else {
+                        console.log('Rol no reconocido:', cleanRole);
+                    }
+
+                    console.log('Menu element found:', menuToShow ? 'YES' : 'NO');
+                    console.log('Menu ID buscado:', menuId);
+
+                    if (menuToShow) {
+                        menuToShow.classList.add('show');
+                        console.log('Menú mostrado exitosamente:', menuId);
+                        console.log('Clases del menú:', menuToShow.className);
+
+                        // Verificar que los elementos li estén visibles
+                        const menuItems = menuToShow.querySelectorAll('li');
+                        console.log('Items de menú encontrados:', menuItems.length);
+                        menuItems.forEach((item, index) => {
+                            console.log(`Item ${index}:`, item.textContent.trim());
+                        });
+                    } else {
+                        console.error('No se encontró elemento de menú para el rol:', cleanRole);
+                        // Listar todos los elementos con clase role-menu para debugging
+                        const allRoleMenus = document.querySelectorAll('.role-menu');
+                        console.log('Todos los menús disponibles:');
+                        allRoleMenus.forEach(menu => {
+                            console.log('- ID:', menu.id, 'Clases:', menu.className);
+                        });
+                    }
+                    console.log('=== FIN MOSTRAR MENÚ ===');
+                }
+
+                // Función para manejar errores de menú
+                function handleMenuError(error) {
+                    console.error('Error cargando el menú:', error);
+                    const loadingMenu = document.getElementById('loadingMenu');
+
+                    if (loadingMenu) {
+                        loadingMenu.innerHTML = '<span style="color: rgba(255,255,255,0.5);"><i class="fas fa-exclamation-triangle"></i> Error cargando menú</span>';
+                    }
+                }
+
+                // Inicializar cuando se carga la página
+                document.addEventListener('DOMContentLoaded', async function() {
+                    console.log('DOM cargado, inicializando menú dinámico...');
+
+                    // Esperar un poco para asegurar que la página esté completamente cargada
+                    setTimeout(async () => {
+                        try {
+                            const userRole = await getUserRole();
+                            console.log('Rol del usuario obtenido:', userRole);
+
+                            if (userRole) {
+                                showRoleBasedMenu(userRole);
+                            } else {
+                                console.log('No se pudo obtener el rol del usuario');
+                                handleMenuError(new Error('No se pudo obtener el rol'));
+                            }
+                        } catch (error) {
+                            handleMenuError(error);
+                        }
+                    }, 500);
+                });
+
+                // También reintentar si la primera carga falla
+                window.addEventListener('load', async function() {
+                    const loadingMenu = document.getElementById('loadingMenu');
+                    if (loadingMenu && loadingMenu.style.display !== 'none') {
+                        console.log('Reintentando carga del menú...');
+                        try {
+                            const userRole = await getUserRole();
+                            if (userRole) {
+                                showRoleBasedMenu(userRole);
+                            }
+                        } catch (error) {
+                            handleMenuError(error);
+                        }
+                    }
+                });
+                </text>
+        }
+
         // Función para mostrar/ocultar el dropdown del usuario
         function toggleUserDropdown() {
             const dropdown = document.getElementById('userDropdown');
-            dropdown.classList.toggle('show');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+            }
         }
 
         // Cerrar el dropdown cuando se hace clic fuera de él

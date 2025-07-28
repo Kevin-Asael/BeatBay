@@ -15,36 +15,36 @@ namespace BeatBay.API.Services
         {
             using (var memoryStream = new MemoryStream())
             {
-                // Crear el documento PDF
+                // Create PDF document
                 var document = new Document(PageSize.A4, 50, 50, 25, 25);
                 var writer = PdfWriter.GetInstance(document, memoryStream);
 
                 document.Open();
 
-                // Fuentes - Corregido para iTextSharp.LGPLv2.Core
+                // Fonts - Fixed for iTextSharp.LGPLv2.Core
                 var titleFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18, BaseColor.Gray);
                 var headerFont = FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14, BaseColor.Gray);
                 var normalFont = FontFactory.GetFont(FontFactory.HELVETICA, 12, BaseColor.Black);
                 var smallFont = FontFactory.GetFont(FontFactory.HELVETICA, 10, BaseColor.Gray);
 
-                // Título principal
-                var title = new Paragraph($"Reporte Estadísticas - {artistName}", titleFont);
+                // Main title
+                var title = new Paragraph($"Statistics Report - {artistName}", titleFont);
                 title.Alignment = Element.ALIGN_CENTER;
                 title.SpacingAfter = 20;
                 document.Add(title);
 
-                // Fecha de generación
-                var fecha = new Paragraph($"Generado el: {DateTime.Now:dd/MM/yyyy HH:mm}", smallFont);
-                fecha.Alignment = Element.ALIGN_RIGHT;
-                fecha.SpacingAfter = 20;
-                document.Add(fecha);
+                // Generation date
+                var date = new Paragraph($"Generated on: {DateTime.Now:MM/dd/yyyy HH:mm}", smallFont);
+                date.Alignment = Element.ALIGN_RIGHT;
+                date.SpacingAfter = 20;
+                document.Add(date);
 
-                // Línea separadora
+                // Separator line
                 document.Add(new Paragraph("_________________________________________________"));
-                document.Add(new Paragraph("\n")); // Reemplazado Chunk.NEWLINE
+                document.Add(new Paragraph("\n")); // Replaced Chunk.NEWLINE
 
-                // Resumen
-                var summaryTitle = new Paragraph("RESUMEN GENERAL", headerFont);
+                // Summary
+                var summaryTitle = new Paragraph("GENERAL SUMMARY", headerFont);
                 summaryTitle.SpacingAfter = 10;
                 document.Add(summaryTitle);
 
@@ -57,14 +57,14 @@ namespace BeatBay.API.Services
                     summaryTable.WidthPercentage = 100;
                     summaryTable.SetWidths(new float[] { 1, 1 });
 
-                    // Estilo para celdas del resumen
+                    // Style for summary cells
                     var cellStyle = new PdfPCell();
                     cellStyle.BackgroundColor = new BaseColor(245, 245, 245);
                     cellStyle.Padding = 10;
                     cellStyle.Border = Rectangle.BOX;
 
-                    // Total de canciones
-                    var totalSongsLabel = new PdfPCell(new Phrase("Total de Canciones:", normalFont));
+                    // Total songs
+                    var totalSongsLabel = new PdfPCell(new Phrase("Total Songs:", normalFont));
                     totalSongsLabel.BackgroundColor = new BaseColor(245, 245, 245);
                     totalSongsLabel.Padding = 10;
                     summaryTable.AddCell(totalSongsLabel);
@@ -73,8 +73,8 @@ namespace BeatBay.API.Services
                     totalSongsValue.Padding = 10;
                     summaryTable.AddCell(totalSongsValue);
 
-                    // Total de reproducciones
-                    var totalPlaysLabel = new PdfPCell(new Phrase("Total de Reproducciones:", normalFont));
+                    // Total plays
+                    var totalPlaysLabel = new PdfPCell(new Phrase("Total Plays:", normalFont));
                     totalPlaysLabel.BackgroundColor = new BaseColor(245, 245, 245);
                     totalPlaysLabel.Padding = 10;
                     summaryTable.AddCell(totalPlaysLabel);
@@ -83,8 +83,8 @@ namespace BeatBay.API.Services
                     totalPlaysValue.Padding = 10;
                     summaryTable.AddCell(totalPlaysValue);
 
-                    // Canciones activas
-                    var activeSongsLabel = new PdfPCell(new Phrase("Canciones Activas:", normalFont));
+                    // Active songs
+                    var activeSongsLabel = new PdfPCell(new Phrase("Active Songs:", normalFont));
                     activeSongsLabel.BackgroundColor = new BaseColor(245, 245, 245);
                     activeSongsLabel.Padding = 10;
                     summaryTable.AddCell(activeSongsLabel);
@@ -93,8 +93,8 @@ namespace BeatBay.API.Services
                     activeSongsValue.Padding = 10;
                     summaryTable.AddCell(activeSongsValue);
 
-                    // Tiempo total reproducido
-                    var totalDurationLabel = new PdfPCell(new Phrase("Tiempo Total Reproducido:", normalFont));
+                    // Total time played
+                    var totalDurationLabel = new PdfPCell(new Phrase("Total Time Played:", normalFont));
                     totalDurationLabel.BackgroundColor = new BaseColor(245, 245, 245);
                     totalDurationLabel.Padding = 10;
                     summaryTable.AddCell(totalDurationLabel);
@@ -108,12 +108,12 @@ namespace BeatBay.API.Services
                     document.Add(summaryTable);
                 }
 
-                document.Add(new Paragraph("\n")); // Reemplazado Chunk.NEWLINE
+                document.Add(new Paragraph("\n")); // Replaced Chunk.NEWLINE
 
-                // Top canciones
+                // Top songs
                 if (topSongs != null && topSongs.Any())
                 {
-                    var topSongsTitle = new Paragraph("TOP 10 CANCIONES MÁS REPRODUCIDAS", headerFont);
+                    var topSongsTitle = new Paragraph("TOP 10 MOST PLAYED SONGS", headerFont);
                     topSongsTitle.SpacingAfter = 10;
                     document.Add(topSongsTitle);
 
@@ -122,22 +122,22 @@ namespace BeatBay.API.Services
                     topSongsTable.SetWidths(new float[] { 3, 1, 1.5f });
 
                     // Headers
-                    var headerCell1 = new PdfPCell(new Phrase("Título", headerFont));
+                    var headerCell1 = new PdfPCell(new Phrase("Title", headerFont));
                     headerCell1.BackgroundColor = new BaseColor(70, 130, 180);
                     headerCell1.Padding = 8;
                     topSongsTable.AddCell(headerCell1);
 
-                    var headerCell2 = new PdfPCell(new Phrase("Reproducciones", headerFont));
+                    var headerCell2 = new PdfPCell(new Phrase("Plays", headerFont));
                     headerCell2.BackgroundColor = new BaseColor(70, 130, 180);
                     headerCell2.Padding = 8;
                     topSongsTable.AddCell(headerCell2);
 
-                    var headerCell3 = new PdfPCell(new Phrase("Tiempo Total", headerFont));
+                    var headerCell3 = new PdfPCell(new Phrase("Total Time", headerFont));
                     headerCell3.BackgroundColor = new BaseColor(70, 130, 180);
                     headerCell3.Padding = 8;
                     topSongsTable.AddCell(headerCell3);
 
-                    // Datos
+                    // Data
                     int position = 1;
                     foreach (var song in topSongs.Take(10))
                     {
@@ -169,13 +169,13 @@ namespace BeatBay.API.Services
                     document.Add(topSongsTable);
                 }
 
-                // Nueva página para todas las canciones
+                // New page for all songs
                 document.NewPage();
 
-                // Todas las canciones
+                // All songs
                 if (songs != null && songs.Any())
                 {
-                    var allSongsTitle = new Paragraph("TODAS LAS CANCIONES", headerFont);
+                    var allSongsTitle = new Paragraph("ALL SONGS", headerFont);
                     allSongsTitle.SpacingAfter = 10;
                     document.Add(allSongsTitle);
 
@@ -184,22 +184,22 @@ namespace BeatBay.API.Services
                     allSongsTable.SetWidths(new float[] { 3, 1, 1.5f });
 
                     // Headers
-                    var headerCell1 = new PdfPCell(new Phrase("Título", headerFont));
+                    var headerCell1 = new PdfPCell(new Phrase("Title", headerFont));
                     headerCell1.BackgroundColor = new BaseColor(70, 130, 180);
                     headerCell1.Padding = 8;
                     allSongsTable.AddCell(headerCell1);
 
-                    var headerCell2 = new PdfPCell(new Phrase("Reproducciones", headerFont));
+                    var headerCell2 = new PdfPCell(new Phrase("Plays", headerFont));
                     headerCell2.BackgroundColor = new BaseColor(70, 130, 180);
                     headerCell2.Padding = 8;
                     allSongsTable.AddCell(headerCell2);
 
-                    var headerCell3 = new PdfPCell(new Phrase("Tiempo Total", headerFont));
+                    var headerCell3 = new PdfPCell(new Phrase("Total Time", headerFont));
                     headerCell3.BackgroundColor = new BaseColor(70, 130, 180);
                     headerCell3.Padding = 8;
                     allSongsTable.AddCell(headerCell3);
 
-                    // Datos
+                    // Data
                     int count = 1;
                     foreach (var song in songs)
                     {
@@ -231,10 +231,10 @@ namespace BeatBay.API.Services
                     document.Add(allSongsTable);
                 }
 
-                // Pie de página
-                document.Add(new Paragraph("\n")); // Reemplazado Chunk.NEWLINE
+                // Footer
+                document.Add(new Paragraph("\n")); // Replaced Chunk.NEWLINE
                 document.Add(new Paragraph("_________________________________________________"));
-                var footer = new Paragraph($"BeatBay - Reporte generado automáticamente", smallFont);
+                var footer = new Paragraph($"BeatBay - Automatically generated report", smallFont);
                 footer.Alignment = Element.ALIGN_CENTER;
                 document.Add(footer);
 

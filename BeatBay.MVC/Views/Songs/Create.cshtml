@@ -16,7 +16,7 @@
     /* Contenedor principal que ocupa toda la pantalla excepto el navbar */
     .upload-container {
         min-height: calc(100vh - 80px);
-        background: transparent; /* El gradiente ya está en el body */
+        background: transparent;
         padding: 2rem 1rem;
         margin: 0;
         position: relative;
@@ -30,6 +30,8 @@
         box-shadow: none;
         border: none;
         transition: none;
+        max-width: 600px;
+        margin: 0 auto;
     }
 
     /* Icono principal */
@@ -71,41 +73,50 @@
     .form-label-custom {
         font-weight: 600;
         color: white;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
         display: block;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-        font-size: 0.95rem;
+        font-size: 1rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        text-align: center;
     }
 
-    /* Controles de formulario */
+    /* Controles de formulario - MÁS GRANDES Y CENTRADOS */
     .form-control-custom {
-        border-radius: 16px;
-        padding: 0.875rem 1.25rem;
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
         border: 2px solid rgba(255, 255, 255, 0.2);
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
         transition: all 0.3s ease;
-        font-size: 1rem;
+        font-size: 1.2rem;
         color: white;
+        text-align: center;
+        width: 100%;
+        height: 60px;
+        display: block;
+        margin: 0 auto;
     }
 
         .form-control-custom::placeholder {
             color: rgba(255, 255, 255, 0.7);
+            text-align: center;
         }
 
         .form-control-custom:focus {
             border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 0.3rem rgba(255, 255, 255, 0.15);
             background: rgba(255, 255, 255, 0.15);
             outline: none;
             color: white;
+            transform: scale(1.02);
         }
 
         .form-control-custom:hover {
             border-color: rgba(255, 255, 255, 0.3);
             background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.01);
         }
 
     /* Input de duración (readonly) */
@@ -114,11 +125,69 @@
         color: rgba(255, 255, 255, 0.8) !important;
     }
 
+    /* Contenedor de inputs más espacioso */
+    .input-container {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+
+    /* Floating labels adaptados para inputs más grandes */
+    .form-floating {
+        position: relative;
+        margin-bottom: 0;
+    }
+
+        .form-floating > label {
+            color: rgba(255, 255, 255, 0.7);
+            padding: 1.75rem 2rem 0.5rem;
+            font-size: 1rem;
+            text-align: center;
+            width: 100%;
+        }
+
+        .form-floating > .form-control-custom:focus ~ label,
+        .form-floating > .form-control-custom:not(:placeholder-shown) ~ label {
+            color: rgba(255, 255, 255, 0.9);
+            transform: scale(0.85) translateY(-1rem) translateX(0);
+            font-weight: 600;
+        }
+
+    /* Input de archivo también más grande y centrado */
+    .file-input-custom {
+        border-radius: 20px;
+        padding: 1.5rem 2rem;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+        color: white;
+        width: 100%;
+        height: 60px;
+        display: block;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+        .file-input-custom:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.01);
+        }
+
+        .file-input-custom:focus {
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 0 0 0.3rem rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.15);
+            outline: none;
+            transform: scale(1.02);
+        }
+
     /* Botones personalizados */
     .btn-custom {
-        border-radius: 12px;
+        border-radius: 15px;
         font-weight: 600;
-        padding: 0.875rem 1.75rem;
+        padding: 1rem 2rem;
         transition: all 0.3s ease;
         text-decoration: none;
         display: inline-flex;
@@ -126,6 +195,7 @@
         justify-content: center;
         border: none;
         cursor: pointer;
+        font-size: 1.1rem;
     }
 
     .btn-primary-custom {
@@ -159,25 +229,30 @@
     /* Información de archivo */
     .file-upload-info {
         color: rgba(255, 255, 255, 0.8);
-        font-size: 0.875rem;
+        font-size: 0.9rem;
+        text-align: center;
+        margin-top: 1rem;
     }
 
     .file-info-text {
         color: #10b981;
         background: rgba(16, 185, 129, 0.2);
-        padding: 0.5rem;
-        border-radius: 8px;
+        padding: 0.75rem;
+        border-radius: 12px;
         border-left: 3px solid #10b981;
         backdrop-filter: blur(5px);
+        text-align: center;
+        margin-top: 1rem;
     }
 
     /* Alertas personalizadas */
     .custom-alert {
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
+        border-radius: 15px;
+        padding: 1.25rem 1.5rem;
         display: flex;
         align-items: center;
         backdrop-filter: blur(10px);
+        margin-bottom: 2rem;
     }
 
     .alert-danger {
@@ -187,25 +262,14 @@
     }
 
     .custom-alert i {
-        margin-right: 12px;
-        font-size: 1.2rem;
+        margin-right: 15px;
+        font-size: 1.3rem;
     }
 
     /* Wrapper para upload de archivos */
     .file-upload-wrapper {
         position: relative;
-    }
-
-    /* Floating labels */
-    .form-floating > label {
-        color: rgba(255, 255, 255, 0.7);
-        padding: 1rem 1.25rem;
-    }
-
-    .form-floating > .form-control-custom:focus ~ label,
-    .form-floating > .form-control-custom:not(:placeholder-shown) ~ label {
-        color: rgba(255, 255, 255, 0.9);
-        transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+        text-align: center;
     }
 
     /* Responsividad */
@@ -219,6 +283,7 @@
 
     .upload-content {
         margin: 0 0.5rem;
+        max-width: 100%;
     }
 
     .upload-title {
@@ -231,13 +296,22 @@
         font-size: 1.75rem;
     }
 
+    .form-control-custom,
+    .file-input-custom {
+        font-size: 1.1rem;
+        padding: 1.25rem 1.5rem;
+        height: 55px;
+    }
+
     }
 
     /* Validación de errores */
     .text-danger {
         color: #ef4444 !important;
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        text-align: center;
+        display: block;
     }
 
     /* Asegurar que no haya márgenes en el contenedor principal */
@@ -254,7 +328,7 @@
 
 <div class="upload-container">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
+        <div class="col-lg-10 col-xl-8">
             <div class="upload-content p-4 p-md-5">
                 <div class="text-center mb-5">
                     <div class="upload-icon-container mb-4">
@@ -268,7 +342,7 @@
 
                 @if (ViewBag.Error != null)
                 {
-                    <div class="custom-alert alert-danger mb-4">
+                    <div class="custom-alert alert-danger">
                         <div class="alert-content">
                             <i class="fas fa-exclamation-circle"></i>
                             <div>@ViewBag.Error</div>
@@ -277,44 +351,39 @@
                 }
 
                 <form asp-action="Create" enctype="multipart/form-data" method="post">
-                    <div class="mb-4">
+                    <div class="input-container">
                         <div class="form-floating">
                             <input asp-for="Title" class="form-control-custom" placeholder="Song title" />
-                            <label>Song Title</label>
                         </div>
-                        <span asp-validation-for="Title" class="text-danger small"></span>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="input-container">
                         <div class="form-floating">
                             <input asp-for="Duration" class="form-control-custom duration-input" id="durationInput" type="text" placeholder="Duration" readonly />
-                            <label>Duration (will be calculated automatically)</label>
                         </div>
                         <span asp-validation-for="Duration" class="text-danger small"></span>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="input-container">
                         <div class="form-floating">
                             <input asp-for="Genre" class="form-control-custom" placeholder="Musical genre" />
-                            <label>Musical Genre</label>
                         </div>
-                        <span asp-validation-for="Genre" class="text-danger small"></span>
                     </div>
 
-                    <div class="mb-5">
+                    <div class="input-container">
                         <label for="audioFile" class="form-label-custom">Audio File</label>
                         <div class="file-upload-wrapper">
-                            <input type="file" name="audioFile" id="audioFile" class="form-control-custom" accept=".mp3,.wav,.flac,.m4a" required />
-                            <div class="file-upload-info mt-2 small">Accepted formats: .mp3, .wav, .flac, .m4a</div>
+                            <input type="file" name="audioFile" id="audioFile" class="file-input-custom" accept=".mp3,.wav,.flac,.m4a" required />
+                            <div class="file-upload-info">Accepted formats: .mp3, .wav, .flac, .m4a</div>
                         </div>
-                        <div id="audioInfo" class="mt-2 small file-info-text" style="display: none;">
+                        <div id="audioInfo" class="file-info-text" style="display: none;">
                             <i class="fas fa-info-circle me-1"></i>
                             <span id="fileDetails"></span>
                         </div>
                     </div>
 
-                    <div class="d-grid gap-3 d-md-flex justify-content-md-end">
-                        <a asp-action="Index" class="btn-custom btn-light-custom me-md-2">
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-center mt-5">
+                        <a asp-action="Index" class="btn-custom btn-light-custom me-md-3">
                             <i class="fas fa-times me-2"></i>Cancel
                         </a>
                         <button type="submit" class="btn-custom btn-primary-custom">

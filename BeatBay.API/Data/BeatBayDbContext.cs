@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using BeatBay.Model;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using BeatBay.Model;
 
 namespace BeatBay.Data
 {
@@ -21,12 +22,15 @@ namespace BeatBay.Data
         public DbSet<PlaylistSong> PlaylistSongs { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<PlaybackStatistic> PlaybackStatistics { get; set; }
-        public DbSet<AdminActionLog> AdminActionLogs { get; set; }
         public DbSet<PlanSubscription> PlanSubscriptions { get; set; }
         public DbSet<UserConnection> UserConnections { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+            builder.Ignore<IdentityRoleClaim<int>>();
+            builder.Ignore<IdentityUserToken<int>>();
+            builder.Ignore<IdentityUserLogin<int>>();
+            builder.Ignore<IdentityUserClaim<int>>();
 
             // Configuración de PlaylistSong (muchos a muchos)
             builder.Entity<PlaylistSong>()
@@ -88,13 +92,6 @@ namespace BeatBay.Data
                 .WithMany()
                 .HasForeignKey(ps => ps.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
-
-            // Configuración de AdminActionLog
-            builder.Entity<AdminActionLog>()
-                .HasOne(aal => aal.AdminUser)
-                .WithMany()
-                .HasForeignKey(aal => aal.AdminUserId)
-                .OnDelete(DeleteBehavior.Cascade);
 
             // Configurar Identity relations
             builder.Entity<UserRole>()

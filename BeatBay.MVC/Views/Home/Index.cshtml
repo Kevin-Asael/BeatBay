@@ -1,116 +1,174 @@
 ﻿@{
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Home - BeatBay";
     bool isAuthenticated = !string.IsNullOrEmpty(Context.Session.GetString("JwtToken"));
 }
 
-<div class="container py-5">
-    <div class="row">
-        <div class="col-12 text-center mb-5">
-            <h1 class="display-4 fw-bold text-primary">Welcome to BeatBay</h1>
-            <p class="lead text-muted">Your one-stop destination for music streaming and sharing</p>
-        </div>
-    </div>
+<div class="home-container">
+    <div class="hero-section">
+        <div class="container py-5">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h1 class="hero-title">Welcome to BeatBay</h1>
+                    <p class="hero-subtitle">Your one-stop destination for music streaming and sharing</p>
+                </div>
+            </div>
 
-    <div class="row justify-content-center mb-5">
-        <div class="col-md-8">
-            <div class="card border-0 shadow-lg">
-                <div class="card-body p-5">
-                    @if (!isAuthenticated)
-                    {
-                        <!-- Botones para usuarios no autenticados -->
-                        <div class="row g-4">
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="@Url.Action("Login", "VAuth")" class="btn btn-primary btn-lg p-4 shadow-sm">
-                                        <i class="fas fa-sign-in-alt fa-2x mb-3"></i>
-                                        <h4 class="mb-0">Login</h4>
-                                        <p class="mb-0 text-light">Access your account</p>
+            @if (!isAuthenticated)
+            {
+                <!-- Sección para usuarios no autenticados -->
+                <div class="row justify-content-center mb-5">
+                    <div class="col-md-10">
+                        <div class="auth-card">
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <a href="@Url.Action("Login", "VAuth")" class="action-btn primary">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        <h4>Login</h4>
+                                        <p>Access your account</p>
                                     </a>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="@Url.Action("Register", "VAuth")" class="btn btn-info btn-lg p-4 shadow-sm">
-                                        <i class="fas fa-user-plus fa-2x mb-3"></i>
-                                        <h4 class="mb-0">Register</h4>
-                                        <p class="mb-0 text-light">Create an account</p>
+                                <div class="col-md-4">
+                                    <a href="@Url.Action("Register", "VAuth")" class="action-btn success">
+                                        <i class="fas fa-user-plus"></i>
+                                        <h4>Register</h4>
+                                        <p>Create an account</p>
                                     </a>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="@Url.Action("RegisterArtist", "VAuth")" class="btn btn-warning btn-lg p-4 shadow-sm">
-                                        <i class="fas fa-guitar fa-2x mb-3"></i>
-                                        <h4 class="mb-0">Artist</h4>
-                                        <p class="mb-0 text-light">Join as an artist</p>
+                                <div class="col-md-4">
+                                    <a href="@Url.Action("RegisterArtist", "VAuth")" class="action-btn warning">
+                                        <i class="fas fa-guitar"></i>
+                                        <h4>Artist</h4>
+                                        <p>Join as an artist</p>
                                     </a>
                                 </div>
                             </div>
                         </div>
-                    }
-                    else
-                    {
-                        <!-- Botones para usuarios autenticados -->
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="@Url.Action("Index", "Songs")" class="btn btn-primary btn-lg p-4 shadow-sm">
-                                        <i class="fas fa-music fa-2x mb-3"></i>
-                                        <h4 class="mb-0">Songs</h4>
-                                        <p class="mb-0 text-light">Browse music</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Sección para usuarios autenticados -->
+                <div class="row justify-content-center mb-5">
+                    <div class="col-md-10">
+                        <div class="auth-card">
+                            <div class="row g-4">
+                                <div class="col-md-3">
+                                    <a href="@Url.Action("Index", "Songs")" class="action-btn primary">
+                                        <i class="fas fa-music"></i>
+                                        <h4>Songs</h4>
+                                        <p>Browse music</p>
                                     </a>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="@Url.Action("Index", "Plans")" class="btn btn-success btn-lg p-4 shadow-sm">
-                                        <i class="fas fa-crown fa-2x mb-3"></i>
-                                        <h4 class="mb-0">Plans</h4>
-                                        <p class="mb-0 text-light">Manage subscription</p>
+                                <div class="col-md-3">
+                                    <a href="@Url.Action("Index", "Plans")" class="action-btn success">
+                                        <i class="fas fa-crown"></i>
+                                        <h4>Plans</h4>
+                                        <p>Manage subscription</p>
                                     </a>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="@Url.Action("Profile", "VAuth")" class="btn btn-info btn-lg p-4 shadow-sm">
-                                        <i class="fas fa-user fa-2x mb-3"></i>
-                                        <h4 class="mb-0">Profile</h4>
-                                        <p class="mb-0 text-light">View your profile</p>
+                                <div class="col-md-3">
+                                    <a href="@Url.Action("Index", "Playlists")" class="action-btn warning">
+                                        <i class="fas fa-list-music"></i>
+                                        <h4>Playlists</h4>
+                                        <p>Your collections</p>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="@Url.Action("Profile", "VAuth")" class="action-btn primary-alt">
+                                        <i class="fas fa-user"></i>
+                                        <h4>Profile</h4>
+                                        <p>View your profile</p>
                                     </a>
                                 </div>
                             </div>
                         </div>
-                    }
+                    </div>
                 </div>
-            </div>
+
+                <!-- Sección de búsqueda para usuarios autenticados -->
+                <div class="row justify-content-center mb-5">
+                    <div class="col-md-10">
+                        <div class="search-section">
+                            <h2 class="search-title">Discover Music</h2>
+                            <form method="get" action="@Url.Action("Index", "Home")" class="search-form">
+                                <div class="search-container">
+                                    <div class="search-input-group">
+                                        <i class="fas fa-search search-icon"></i>
+                                        <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" 
+                                               placeholder="Search songs, artists..." class="search-input">
+                                        <button type="submit" class="search-btn">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            @if (ViewBag.SearchResults != null)
+                            {
+                                <div class="search-results">
+                                    <h3 class="results-title">Search Results</h3>
+                                    @if (((List<dynamic>)ViewBag.SearchResults).Count > 0)
+                                    {
+                                        <div class="results-grid">
+                                            @foreach (var song in (List<dynamic>)ViewBag.SearchResults)
+                                            {
+                                                <div class="song-card">
+                                                    <div class="song-info">
+                                                        <h5 class="song-title">@song.Title</h5>
+                                                        <p class="song-artist">@song.ArtistName</p>
+                                                        <p class="song-genre">@song.Genre</p>
+                                                    </div>
+                                                    <div class="song-actions">
+                                                        <a href="@Url.Action("Details", "Songs", new { id = song.Id })" 
+                                                           class="btn-play">
+                                                            <i class="fas fa-play"></i>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="no-results">
+                                            <i class="fas fa-music-slash"></i>
+                                            <p>No songs found matching your search.</p>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-headphones-alt fa-3x text-primary mb-3"></i>
-                    <h3>Listen Anywhere</h3>
-                    <p class="text-muted">Stream your favorite music on any device, anytime.</p>
+    <!-- Sección de características -->
+    <div class="features-section">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-headphones-alt"></i>
+                        <h3>Listen your Music</h3>
+                        <p>Stream your favorite music, anytime.</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-users fa-3x text-success mb-3"></i>
-                    <h3>Share with Friends</h3>
-                    <p class="text-muted">Connect with friends and share your favorite tracks.</p>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-users"></i>
+                        <h3>Create Your Playlists</h3>
+                        <p>Get any song to your custom playlist.</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center p-4">
-                    <i class="fas fa-star fa-3x text-warning mb-3"></i>
-                    <h3>Premium Quality</h3>
-                    <p class="text-muted">Experience high-quality audio streaming.</p>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="fas fa-star"></i>
+                        <h3>Premium Quality</h3>
+                        <p>Get a smooth experience.</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -118,61 +176,291 @@
 </div>
 
 <style>
-    .btn-lg {
-        transition: all 0.3s ease;
-        border: none;
-        min-height: 180px;
-    }
+    /* Aplica el fondo gradiente a todo el documento */
+body {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
 
-    .btn-lg:hover {
-        transform: translateY(-3px);
-    }
+/* O si prefieres aplicarlo al html */
+html {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+}
 
-    .btn-primary {
-        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
-    }
+.home-container {
+    min-height: 100vh;
+    /* Quita el background de aquí ya que estará en body */
+    /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+}
 
-    .btn-success {
-        background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
-    }
+.hero-section {
+    padding: 2rem 0;
+}
 
-    .btn-info {
-        background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
-        color: white !important;
-    }
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: white;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    margin-bottom: 1rem;
+}
 
-    .btn-warning {
-        background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
-        color: white !important;
-    }
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 3rem;
+}
 
-    .card {
-        transition: all 0.3s ease;
-    }
+.auth-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+}
 
-    .card:hover {
-        transform: translateY(-5px);
-    }
+.action-btn {
+    display: block;
+    text-decoration: none;
+    padding: 2rem 1.5rem;
+    border-radius: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+    color: white;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
 
-    .shadow-lg {
-        box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
-    }
+.action-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    color: white;
+}
 
-    .shadow-sm {
-        box-shadow: 0 .125rem .25rem rgba(0,0,0,.075)!important;
-    }
+.action-btn.primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
 
-    .fas {
-        display: block;
-        margin-bottom: 0.5rem;
-    }
+.action-btn.primary-alt {
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+}
 
-    .btn-lg p {
-        opacity: 0.9;
-        font-size: 0.9rem;
-    }
+.action-btn.success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
 
-    .btn-lg h4 {
-        color: white;
-    }
+.action-btn.warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.action-btn i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.action-btn h4 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.action-btn p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.search-section {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.search-title {
+    color: white;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+.search-container {
+    margin-bottom: 2rem;
+}
+
+.search-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 0.5rem;
+    backdrop-filter: blur(10px);
+}
+
+.search-icon {
+    color: rgba(255,255,255,0.7);
+    margin-left: 1rem;
+    font-size: 1.1rem;
+}
+
+.search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    flex: 1;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+}
+
+.search-input::placeholder {
+    color: rgba(255,255,255,0.7);
+}
+
+.search-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem;
+    color: white;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.search-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+}
+
+.results-title {
+    color: white;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.song-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.song-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.15);
+}
+
+.song-title {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.song-artist {
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 0.25rem;
+}
+
+.song-genre {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.btn-play {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-play:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+    color: white;
+}
+
+.no-results {
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    padding: 3rem;
+}
+
+.no-results i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.features-section {
+    background: rgba(255,255,255,0.05);
+    padding: 4rem 0;
+}
+
+.feature-card {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.1);
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.15);
+}
+
+.feature-card i {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    color: #10b981;
+}
+
+.feature-card h3 {
+    color: white;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.feature-card p {
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+}
+
+   
 </style>

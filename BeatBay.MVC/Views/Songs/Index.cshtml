@@ -427,23 +427,10 @@
 
                             <!-- Container for right-side buttons -->
                             <div style="display: flex; gap: 12px; align-items: center;">
-
-                                <!-- Dashboard button using ViewBag.IsAdmin -->
-                                @if (ViewBag.IsAdmin == true)
-                                {
-                                    <a href="https://localhost:7194/Home/IndexAdmin" class="dashboard-btn">
-                                        <i class="fas fa-tachometer-alt"></i>
-                                        <span>Admin Panel</span>
-                                    </a>
-                                }
-                                else
-                                {
-                                    <a href="https://localhost:7194/Home/IndexArtista" class="dashboard-btn">
-                                        <i class="fas fa-tachometer-alt"></i>
-                                        <span>Artist Panel</span>
-                                    </a>
-                                }
-
+                                <a asp-controller="Home" asp-action="Index" class="dashboard-btn">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    <span>Panel</span>
+                                </a>
                             </div>
                         </div>
 
