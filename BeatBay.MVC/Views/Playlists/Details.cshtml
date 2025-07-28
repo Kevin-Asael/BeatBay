@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Detalles de Playlist";
     var availableSongs = ViewBag.AvailableSongs as List<BeatBay.DTOs.SongDto> ?? new List<BeatBay.DTOs.SongDto>();
+    var infoReproduccion = ViewBag.InfoReproduccion;
 }
 
 <div class="playlist-detail-container">
@@ -45,6 +46,91 @@
             <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
                 <i class="fas fa-exclamation-circle me-2"></i> @TempData["Error"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Info"] != null)
+        {
+            <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+                <i class="fas fa-info-circle me-2"></i> @TempData["Info"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- NUEVA INTERFAZ DE REPRODUCCIÓN INTEGRADA -->
+        @if (Model.Songs.Any())
+        {
+            <div class="card mb-4 glass-card">
+                <div class="card-header glass-header">
+                    <h5 class="mb-0 card-title">
+                        <i class="fas fa-play me-2"></i> Reproductor de Playlist
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Información de la canción actual -->
+                    <div class="mini-player-info mb-3">
+                        <div class="mini-album-art" id="miniAlbumArt">🎵</div>
+                        <div class="mini-track-info">
+                            <div class="mini-track-title" id="miniTrackTitle">
+                                <span>Selecciona una canción para reproducir</span>
+                            </div>
+                            <div class="mini-track-artist" id="miniTrackArtist">
+                                <span>@Model.UserName</span>
+                            </div>
+                        </div>
+                        <div class="mini-player-actions">
+                            <button class="btn btn-primary btn-sm" onclick="startPlaylist()">
+                                <i class="fas fa-play me-1"></i> Iniciar Playlist
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Controles de reproducción -->
+                    <div class="mini-player-controls mb-3">
+                        <button class="mini-control-btn" id="prevBtn" title="Anterior">
+                            <i class="fas fa-step-backward"></i>
+                        </button>
+
+                        <button class="mini-control-btn mini-play-btn" id="miniPlayBtn" title="Reproducir/Pausar">
+                            <i class="fas fa-play"></i>
+                        </button>
+
+                        <button class="mini-control-btn" id="nextBtn" title="Siguiente">
+                            <i class="fas fa-step-forward"></i>
+                        </button>
+
+                        <button class="mini-control-btn mini-loop-btn" id="miniLoopBtn" title="Repetir">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+
+                    <!-- Barra de progreso -->
+                    <div class="mini-progress-container mb-3">
+                        <div class="mini-progress-bar" id="miniProgressBar">
+                            <div class="mini-progress-fill" id="miniProgressFill"></div>
+                        </div>
+                        <div class="mini-time-display">
+                            <span id="miniCurrentTime">0:00</span>
+                            <span id="miniTotalTime">0:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Control de volumen -->
+                    <div class="mini-volume-container mb-2">
+                        <span class="mini-volume-icon">
+                            <i class="fas fa-volume-up"></i>
+                        </span>
+                        <input type="range" class="mini-volume-slider" id="miniVolumeSlider" min="0" max="1" step="0.1" value="0.7">
+                    </div>
+
+                    <!-- Estado del reproductor -->
+                    <div class="mini-status" id="miniStatus">
+                        <span>Listo para reproducir</span>
+                    </div>
+
+                    <!-- Audio element oculto -->
+                    <audio id="playlistAudio" preload="metadata" style="display: none;"></audio>
+                </div>
             </div>
         }
 
@@ -108,8 +194,18 @@
                                 @for (int i = 0; i < Model.Songs.Count; i++)
                                 {
                                     var song = Model.Songs[i];
+                                    var isCurrentSong = infoReproduccion?.CancionActual?.Id == song.Id;
                                     <tr class="table-row">
-                                        <td class="table-cell">@(i + 1)</td>
+                                        <td class="table-cell">
+                                            <div class="d-flex align-items-center">
+                                                <button class="song-play-btn @(isCurrentSong ? "song-playing" : "")"
+                                                        onclick="playSong(@song.Id, '@song.Title.Replace("'", "\\'").Replace("\"", "\\\"")', '@song.ArtistName.Replace("'", "\\'").Replace("\"", "\\\"")', '@song.StreamingUrl', @song.PlayCount)"
+                                                        title="Reproducir canción">
+                                                    <i class="fas @(isCurrentSong ? "fa-pause" : "fa-play")"></i>
+                                                </button>
+                                                <span>@(i + 1)</span>
+                                            </div>
+                                        </td>
                                         <td class="table-cell">
                                             <div class="d-flex align-items-center">
                                                 <div class="song-thumbnail">
@@ -139,16 +235,8 @@
                                         <td class="table-cell">@song.PlayCount</td>
                                         <td class="table-cell">
                                             <div class="d-flex align-items-center">
-                                                @if (song.IsActive)
-                                                {
-                                                    <audio controls class="custom-audio">
-                                                        <source src="@song.StreamingUrl" type="audio/mpeg">
-                                                        Tu navegador no soporta la reproducción de audio.
-                                                    </audio>
-                                                }
-                                                
-                                                <button type="button" class="btn btn-outline-danger btn-sm rounded-circle delete-btn" 
-                                                        data-bs-toggle="modal" 
+                                                <button type="button" class="btn btn-outline-danger btn-sm rounded-circle delete-btn"
+                                                        data-bs-toggle="modal"
                                                         data-bs-target="#removeSongModal-@song.Id"
                                                         title="Remover de playlist">
                                                     <i class="fas fa-trash"></i>
@@ -198,26 +286,8 @@
     </div>
 </div>
 
-@functions {
-    private string GetRandomGradient()
-    {
-        var gradients = new List<string>
-        {
-            "#6366f1, #8b5cf6",
-            "#10b981, #059669",
-            "#f59e0b, #d97706",
-            "#ef4444, #dc2626",
-            "#667eea, #764ba2",
-            "#8b5cf6, #7c3aed"
-        };
-        
-        var random = new Random();
-        return gradients[random.Next(gradients.Count)];
-    }
-}
-
 <style>
-    /* Estilos base */
+    /* Estilos base existentes mantenidos */
     body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
@@ -233,7 +303,234 @@
         position: relative;
     }
 
-    /* Títulos y texto */
+    /* NUEVOS ESTILOS PARA EL MINI REPRODUCTOR */
+    .mini-player-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .mini-album-art {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .mini-track-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .mini-track-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #f8fafc;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mini-track-artist {
+        font-size: 0.9rem;
+        color: rgba(248, 250, 252, 0.7);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mini-player-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .mini-player-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .mini-control-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1.1rem;
+    }
+
+        .mini-control-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            color: white;
+        }
+
+        .mini-control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .mini-play-btn {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        font-size: 1.3rem;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+
+        .mini-play-btn:hover {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+        }
+
+    .mini-loop-btn.active {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .mini-progress-container {
+        margin: 0;
+    }
+
+    .mini-progress-bar {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: height 0.2s ease;
+    }
+
+        .mini-progress-bar:hover {
+            height: 10px;
+        }
+
+    .mini-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6);
+        width: 0%;
+        transition: width 0.1s ease;
+    }
+
+    .mini-time-display {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        color: rgba(248, 250, 252, 0.7);
+        margin-top: 8px;
+    }
+
+    .mini-volume-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .mini-volume-icon {
+        font-size: 1.1rem;
+        color: rgba(248, 250, 252, 0.8);
+    }
+
+    .mini-volume-slider {
+        flex: 1;
+        height: 6px;
+        -webkit-appearance: none;
+        appearance: none;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        outline: none;
+    }
+
+        .mini-volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+        }
+
+            .mini-volume-slider::-webkit-slider-thumb:hover {
+                transform: scale(1.1);
+                box-shadow: 0 3px 12px rgba(99, 102, 241, 0.5);
+            }
+
+    .mini-status {
+        text-align: center;
+        font-size: 0.9rem;
+        color: #10b981;
+        font-weight: 500;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Botones de reproducción en la tabla */
+    .song-play-btn {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border: none;
+        color: white;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+        margin-right: 10px;
+    }
+
+        .song-play-btn:hover {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            transform: scale(1.05);
+        }
+
+    .song-playing {
+        background: linear-gradient(135deg, #10b981, #059669) !important;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100%
+
+    {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+
+    }
+
+    /* Estilos existentes mantenidos */
     .playlist-title {
         font-size: 2.5rem;
         color: #f8fafc;
@@ -245,7 +542,6 @@
         color: rgba(248, 250, 252, 0.7);
     }
 
-    /* Botones */
     .action-btn {
         border-radius: 20px;
         padding: 8px 20px;
@@ -260,23 +556,23 @@
         color: white;
     }
 
-    .btn-warning:hover {
-        background: linear-gradient(135deg, #d97706, #b45309);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-    }
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
 
     .btn-outline-light {
         border: 2px solid rgba(248, 250, 252, 0.3);
         color: #f8fafc;
     }
 
-    .btn-outline-light:hover {
-        background: rgba(248, 250, 252, 0.1);
-        border-color: rgba(248, 250, 252, 0.5);
-        color: #f8fafc;
-        transform: translateY(-1px);
-    }
+        .btn-outline-light:hover {
+            background: rgba(248, 250, 252, 0.1);
+            border-color: rgba(248, 250, 252, 0.5);
+            color: #f8fafc;
+            transform: translateY(-1px);
+        }
 
     .primary-btn {
         border-radius: 10px;
@@ -286,13 +582,12 @@
         transition: all 0.3s ease;
     }
 
-    .primary-btn:hover {
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-    }
+        .primary-btn:hover {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
 
-    /* Alertas */
     .alert-danger {
         border-radius: 10px;
         background: rgba(239, 68, 68, 0.2);
@@ -307,11 +602,17 @@
         color: #a7f3d0;
     }
 
+    .alert-info {
+        border-radius: 10px;
+        background: rgba(59, 130, 246, 0.2);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        color: #bfdbfe;
+    }
+
     .btn-close {
         filter: invert(1);
     }
 
-    /* Cards con efecto glass */
     .glass-card {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -331,7 +632,6 @@
         color: #f8fafc;
     }
 
-    /* Select personalizado */
     .custom-select {
         background: rgba(255, 255, 255, 0.05) !important;
         color: white !important;
@@ -341,18 +641,17 @@
         backdrop-filter: blur(5px);
     }
 
-    .custom-select:focus {
-        border-color: #6366f1 !important;
-        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25) !important;
-        background: rgba(255, 255, 255, 0.1) !important;
-    }
+        .custom-select:focus {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
 
-    .custom-select option {
-        background: #1f2937;
-        color: white;
-    }
+        .custom-select option {
+            background: #1f2937;
+            color: white;
+        }
 
-    /* Tabla personalizada */
     .custom-table {
         background: transparent;
         border-collapse: separate;
@@ -376,9 +675,9 @@
         transition: background-color 0.2s ease;
     }
 
-    .table-row:hover {
-        background: rgba(255, 255, 255, 0.08) !important;
-    }
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
 
     .table-cell {
         border: none;
@@ -387,7 +686,6 @@
         color: #f8fafc;
     }
 
-    /* Thumbnail de canción */
     .song-thumbnail {
         width: 40px;
         height: 40px;
@@ -399,16 +697,15 @@
         margin-right: 10px;
     }
 
-    .song-thumbnail i {
-        color: rgba(255, 255, 255, 0.8);
-    }
+        .song-thumbnail i {
+            color: rgba(255, 255, 255, 0.8);
+        }
 
     .song-title {
         display: block;
         color: #f8fafc;
     }
 
-    /* Badges */
     .warning-badge {
         background: rgba(245, 158, 11, 0.2);
         color: #fbbf24;
@@ -424,16 +721,6 @@
         border: 1px solid rgba(99, 102, 241, 0.3);
     }
 
-    /* Audio personalizado */
-    .custom-audio {
-        max-width: 150px;
-        height: 32px;
-        margin-right: 10px;
-        filter: invert(1) brightness(0.8);
-        border-radius: 15px;
-    }
-
-    /* Botón de eliminar */
     .delete-btn {
         width: 32px;
         height: 32px;
@@ -445,18 +732,17 @@
         transition: all 0.3s ease;
     }
 
-    .delete-btn:hover {
-        background: rgba(239, 68, 68, 0.1);
-        border-color: #ef4444;
-        color: #ef4444;
-        transform: scale(1.05);
-    }
+        .delete-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: #ef4444;
+            transform: scale(1.05);
+        }
 
-    .delete-btn i {
-        font-size: 0.8rem;
-    }
+        .delete-btn i {
+            font-size: 0.8rem;
+        }
 
-    /* Modal personalizado */
     .modal {
         background: rgba(0, 0, 0, 0.7);
         backdrop-filter: blur(5px);
@@ -489,10 +775,10 @@
         color: #d1d5db;
     }
 
-    .cancel-btn:hover {
-        background: #4b5563;
-        color: #f3f4f6;
-    }
+        .cancel-btn:hover {
+            background: #4b5563;
+            color: #f3f4f6;
+        }
 
     .danger-btn {
         border-radius: 20px;
@@ -500,13 +786,12 @@
         border: none;
     }
 
-    .danger-btn:hover {
-        background: linear-gradient(135deg, #dc2626, #b91c1c);
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
+        .danger-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
 
-    /* Estado vacío */
     .empty-state {
         color: rgba(248, 250, 252, 0.8);
     }
@@ -523,9 +808,9 @@
         border: 2px solid rgba(255, 255, 255, 0.1);
     }
 
-    .empty-icon i {
-        color: rgba(255, 255, 255, 0.3);
-    }
+        .empty-icon i {
+            color: rgba(255, 255, 255, 0.3);
+        }
 
     .empty-title {
         color: #f8fafc;
@@ -540,34 +825,409 @@
 
     /* Responsividad */
     @@media (max-width: 768px) {
-        .playlist-title {
-            font-size: 2rem;
-        }
-        
-        .custom-audio {
-            max-width: 120px;
-        }
-        
-        .action-btn {
-            padding: 6px 12px;
-            font-size: 0.9rem;
-        }
+        .playlist-title
+
+    {
+        font-size: 2rem;
     }
-</style>
+
+    .action-btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+
+    .mini-player-controls {
+        gap: 10px;
+    }
+
+    .mini-control-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+    }
+
+    .mini-play-btn {
+        width: 55px;
+        height: 55px;
+        font-size: 1.2rem;
+    }
+
+    .mini-album-art {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+
+    .mini-track-title {
+        font-size: 1rem;
+    }
+
+    }</style>
 
 @section Scripts {
     <script>
-        // Auto-ocultar alertas después de 5 segundos
+                // Variables globales simples
+        let currentSongIndex = 0;
+        let isPlaying = false;
+        let playlist = @Html.Raw(Json.Serialize(Model.Songs));
+        let audioPlayer = null;
+
+        // CORREGIR LA DETECCIÓN DE PREMIUM
+        let isPremium = false;
+        let planId = 1;
+
+        // Obtener valores del servidor de forma más segura
+        try {
+            planId = @(ViewBag.PlanId ?? 1);
+            isPremium = @((ViewBag.IsPremium ?? false).ToString().ToLower());
+
+            // Convertir string a boolean si es necesario
+            if (typeof isPremium === 'string') {
+                isPremium = isPremium === 'true';
+            }
+
+            // Double check con planId
+            if (!isPremium && planId > 1) {
+                isPremium = true;
+            }
+        } catch (error) {
+            console.error('Error parsing premium status:', error);
+            isPremium = false;
+            planId = 1;
+        }
+
+        console.log("=== PREMIUM STATUS DEBUG ===");
+        console.log("PlanId:", planId);
+        console.log("IsPremium:", isPremium);
+        console.log("Type of isPremium:", typeof isPremium);
+        console.log("============================");
+
+        // Inicializar cuando la página carga
+        document.addEventListener('DOMContentLoaded', function() {
+            audioPlayer = document.getElementById('playlistAudio');
+            setupPlayer();
+            updateDisplay();
+            updateButtons();
+            setupPremiumRestrictions();
+
+            // Mostrar estado en la UI para verificar
+            updatePremiumStatus();
+        });
+
+
+        // Configurar eventos del reproductor
+        function setupPlayer() {
+            // Botón play/pause
+            document.getElementById('miniPlayBtn').onclick = function() {
+                togglePlayPause();
+            };
+
+            // Botón anterior
+            document.getElementById('prevBtn').onclick = function() {
+                console.log("Previous button clicked! isPremium:", isPremium);
+                if (isPremium) {
+                    previousSong();
+                } else {
+                    showPremiumAlert();
+                }
+            };
+
+            // Botón siguiente
+            document.getElementById('nextBtn').onclick = function() {
+                console.log("Next button clicked! isPremium:", isPremium);
+                if (isPremium) {
+                    nextSong();
+                } else {
+                    showPremiumAlert();
+                }
+            };
+
+            // Botón loop
+            document.getElementById('miniLoopBtn').onclick = function() {
+                console.log("Loop button clicked! isPremium:", isPremium);
+                if (isPremium) {
+                    toggleLoop();
+                } else {
+                    showPremiumAlert();
+                }
+            };
+
+            // Eventos del audio
+            audioPlayer.onplay = function() {
+                isPlaying = true;
+                document.getElementById('miniPlayBtn').innerHTML = '<i class="fas fa-pause"></i>';
+                updateSongButtons();
+            };
+
+            audioPlayer.onpause = function() {
+                isPlaying = false;
+                document.getElementById('miniPlayBtn').innerHTML = '<i class="fas fa-play"></i>';
+                updateSongButtons();
+            };
+
+            audioPlayer.ontimeupdate = function() {
+                updateProgress();
+            };
+
+            audioPlayer.onended = function() {
+                if (audioPlayer.loop) {
+                    return;
+                }
+
+                if (isPremium && currentSongIndex < playlist.length - 1) {
+                    nextSong();
+                } else {
+                    isPlaying = false;
+                    document.getElementById('miniPlayBtn').innerHTML = '<i class="fas fa-play"></i>';
+                    updateSongButtons();
+                }
+            };
+
+            audioPlayer.onloadedmetadata = function() {
+                updateProgress();
+            };
+
+            // Control de volumen
+            document.getElementById('miniVolumeSlider').oninput = function() {
+                audioPlayer.volume = this.value;
+            };
+
+            // Barra de progreso
+            document.getElementById('miniProgressBar').onclick = function(e) {
+                if (audioPlayer.duration) {
+                    const rect = this.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    audioPlayer.currentTime = percent * audioPlayer.duration;
+                }
+            };
+        }
+
+        // Configurar restricciones premium en la UI
+        function setupPremiumRestrictions() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const loopBtn = document.getElementById('miniLoopBtn');
+
+            console.log("Setting up premium restrictions, isPremium:", isPremium);
+
+            if (!isPremium) {
+                // Estilo visual para usuarios no premium
+                prevBtn.style.opacity = '0.5';
+                nextBtn.style.opacity = '0.5';
+                loopBtn.style.opacity = '0.5';
+
+                prevBtn.style.cursor = 'not-allowed';
+                nextBtn.style.cursor = 'not-allowed';
+                loopBtn.style.cursor = 'not-allowed';
+
+                prevBtn.title = '🔒 Función Premium - Anterior';
+                nextBtn.title = '🔒 Función Premium - Siguiente';
+                loopBtn.title = '🔒 Función Premium - Repetir';
+
+                // Agregar clase visual si no existe
+                if (!prevBtn.classList.contains('premium-restricted')) {
+                    prevBtn.classList.add('premium-restricted');
+                    nextBtn.classList.add('premium-restricted');
+                    loopBtn.classList.add('premium-restricted');
+                }
+            } else {
+                // Estilo para usuarios premium
+                prevBtn.style.opacity = '1';
+                nextBtn.style.opacity = '1';
+                loopBtn.style.opacity = '1';
+
+                prevBtn.style.cursor = 'pointer';
+                nextBtn.style.cursor = 'pointer';
+                loopBtn.style.cursor = 'pointer';
+
+                prevBtn.title = 'Anterior';
+                nextBtn.title = 'Siguiente';
+                loopBtn.title = 'Repetir';
+
+                // Remover clase visual
+                prevBtn.classList.remove('premium-restricted');
+                nextBtn.classList.remove('premium-restricted');
+                loopBtn.classList.remove('premium-restricted');
+            }
+        }
+
+        // Mostrar alerta de premium mejorada
+        function showPremiumAlert() {
+            const alertHtml = `
+                <div class="alert alert-warning alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    <i class="fas fa-crown me-2" style="color: #f59e0b;"></i>
+                    <strong>¡Función Premium!</strong><br>
+                    Esta característica está disponible solo para usuarios Premium.<br>
+                    <small>Actualiza tu plan para disfrutar de todas las funciones.</small>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            // Insertar alerta en el DOM
+            document.body.insertAdjacentHTML('afterbegin', alertHtml);
+
+            // Auto-eliminar después de 5 segundos
+            setTimeout(() => {
+                const alert = document.querySelector('.alert-warning');
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Función para iniciar playlist
+        function startPlaylist() {
+            if (playlist.length > 0) {
+                currentSongIndex = 0;
+                loadAndPlaySong();
+            }
+        }
+
+        // Función para play/pause
+        function togglePlayPause() {
+            if (playlist.length === 0) {
+                alert('No hay canciones en la playlist');
+                return;
+            }
+
+            if (isPlaying) {
+                audioPlayer.pause();
+            } else {
+                if (!audioPlayer.src || audioPlayer.src === '') {
+                    loadAndPlaySong();
+                } else {
+                    audioPlayer.play().catch(error => {
+                        console.error('Error al reproducir:', error);
+                        alert('Error al reproducir la canción');
+                    });
+                }
+            }
+        }
+
+        // Canción anterior
+        function previousSong() {
+            if (currentSongIndex > 0) {
+                currentSongIndex--;
+            } else {
+                currentSongIndex = playlist.length - 1;
+            }
+            loadAndPlaySong();
+            updateButtons();
+        }
+
+        // Canción siguiente
+        function nextSong() {
+            if (currentSongIndex < playlist.length - 1) {
+                currentSongIndex++;
+            } else {
+                currentSongIndex = 0;
+            }
+            loadAndPlaySong();
+            updateButtons();
+        }
+
+        // Cargar y reproducir canción actual
+        function loadAndPlaySong() {
+            if (playlist.length === 0) return;
+
+            const song = playlist[currentSongIndex];
+            console.log("Loading song:", song.title);
+            audioPlayer.src = song.streamingUrl;
+            audioPlayer.play().catch(error => {
+                console.error('Error al reproducir:', error);
+                document.getElementById('miniStatus').textContent = 'Error al cargar la canción';
+            });
+            updateDisplay();
+            updateButtons();
+        }
+
+        // Toggle loop
+        function toggleLoop() {
+            const loopBtn = document.getElementById('miniLoopBtn');
+            if (audioPlayer.loop) {
+                audioPlayer.loop = false;
+                loopBtn.classList.remove('active');
+                loopBtn.title = 'Repetir canción';
+            } else {
+                audioPlayer.loop = true;
+                loopBtn.classList.add('active');
+                loopBtn.title = 'Desactivar repetición';
+            }
+        }
+
+        // Reproducir canción específica (desde la tabla)
+        function playSong(songId, title, artist, streamingUrl, playCount) {
+            const songIndex = playlist.findIndex(s => s.id === songId);
+            if (songIndex !== -1) {
+                currentSongIndex = songIndex;
+                audioPlayer.src = streamingUrl;
+                audioPlayer.play().catch(error => {
+                    console.error('Error al reproducir:', error);
+                });
+                updateDisplay();
+                updateButtons();
+            }
+        }
+
+        // Actualizar información mostrada
+        function updateDisplay() {
+            if (playlist.length === 0) {
+                document.getElementById('miniStatus').textContent = 'No hay canciones en la playlist';
+                return;
+            }
+
+            const song = playlist[currentSongIndex];
+            document.getElementById('miniTrackTitle').textContent = song.title;
+            document.getElementById('miniTrackArtist').textContent = song.artistName;
+            document.getElementById('miniAlbumArt').textContent = song.title.charAt(0).toUpperCase();
+            updatePremiumStatus();
+        }
+
+        // Actualizar botones de navegación
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+
+            // Los botones siempre están "habilitados" pero las funciones verifican premium
+            prevBtn.disabled = false;
+            nextBtn.disabled = false;
+        }
+
+        // Actualizar botones de reproducción en la tabla
+        function updateSongButtons() {
+            document.querySelectorAll('.song-play-btn').forEach((btn, index) => {
+                const icon = btn.querySelector('i');
+                if (index === currentSongIndex && isPlaying) {
+                    btn.classList.add('song-playing');
+                    icon.className = 'fas fa-pause';
+                } else {
+                    btn.classList.remove('song-playing');
+                    icon.className = 'fas fa-play';
+                }
+            });
+        }
+
+        // Actualizar barra de progreso
+        function updateProgress() {
+            if (audioPlayer.duration) {
+                const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                document.getElementById('miniProgressFill').style.width = percent + '%';
+                document.getElementById('miniCurrentTime').textContent = formatTime(audioPlayer.currentTime);
+                document.getElementById('miniTotalTime').textContent = formatTime(audioPlayer.duration);
+            }
+        }
+
+        // Formatear tiempo
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Auto-ocultar alertas
         setTimeout(function() {
             $('.alert').fadeOut('slow');
         }, 5000);
-
-        // Mejorar la experiencia de los modales
-        document.addEventListener('DOMContentLoaded', function() {
-            // Añadir animación suave a los modales
-            $('.modal').on('show.bs.modal', function() {
-                $(this).find('.modal-dialog').addClass('animate__animated animate__fadeInUp');
-            });
-        });
     </script>
 }

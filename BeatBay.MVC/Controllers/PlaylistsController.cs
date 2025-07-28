@@ -1,6 +1,7 @@
 ﻿using BeatBay.APIConsumer;
 using BeatBay.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace BeatBay.MVC.Controllers
 {
@@ -111,7 +112,7 @@ namespace BeatBay.MVC.Controllers
             }
         }
 
-        // GET: Playlists/Details/5 - Público, pero con funcionalidad adicional si está autenticado
+        // GET: Playlists/Details/5 - Public access with additional features for authenticated users
         public async Task<IActionResult> Details(int id)
         {
             try
@@ -122,36 +123,90 @@ namespace BeatBay.MVC.Controllers
                 if (playlist == null)
                     return NotFound();
 
-                // Cargar canciones disponibles solo si el usuario está autenticado
                 if (IsAuthenticated())
                 {
                     try
                     {
                         ConfigureCrudForSongs();
                         var allSongs = Crud<SongDto>.GetAll() ?? new List<SongDto>();
-
-                        // Filtrar solo canciones activas y que no estén en la playlist
                         var playlistSongIds = playlist.Songs.Select(s => s.Id).ToHashSet();
                         ViewBag.AvailableSongs = allSongs
                             .Where(s => s.IsActive && !playlistSongIds.Contains(s.Id))
                             .ToList();
+
+                        // SIEMPRE obtener datos frescos para asegurar que el plan esté actualizado
+                        var userData = GetFreshUserData();
+                        var planId = userData?.PlanId ?? 1;
+                        var isPremium = planId > 1;
+
+                        ViewBag.PlanId = planId;
+                        ViewBag.IsPremium = isPremium;
+
+                        _logger.LogInformation($"Vista Details - PlanId: {planId}, IsPremium: {isPremium}");
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error cargando canciones disponibles");
+                        _logger.LogError(ex, "Error loading songs or user data");
                         ViewBag.AvailableSongs = new List<SongDto>();
+                        ViewBag.IsPremium = false;
+                        ViewBag.PlanId = 1;
                     }
+                }
+                else
+                {
+                    ViewBag.AvailableSongs = new List<SongDto>();
+                    ViewBag.IsPremium = false;
+                    ViewBag.PlanId = 1;
                 }
 
                 return View(playlist);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error cargando detalles de playlist");
-                ViewBag.Error = "Error cargando detalles de la playlist.";
+                _logger.LogError(ex, "Error loading playlist details");
+                ViewBag.Error = "Error loading playlist details.";
                 return View();
             }
         }
+
+        private UserDto GetFreshUserData()
+        {
+            try
+            {
+                var token = HttpContext.Session.GetString("JwtToken");
+                if (string.IsNullOrEmpty(token))
+                    return null;
+
+                // Hacer llamada HTTP directa al endpoint
+                using (var httpClient = new HttpClient())
+                {
+                    httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+                    var response = httpClient.GetAsync($"{_apiBaseUrl}/auth/profile").Result;
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var jsonContent = response.Content.ReadAsStringAsync().Result;
+                        var userData = JsonConvert.DeserializeObject<UserDto>(jsonContent);
+
+                        if (userData != null)
+                        {
+                            // Actualizar la sesión con los datos frescos
+                            HttpContext.Session.SetString("UserData", JsonConvert.SerializeObject(userData));
+                        }
+
+                        return userData;
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
 
         // GET: Playlists/Create - Requiere autenticación
         public async Task<IActionResult> Create()
