@@ -94,21 +94,6 @@
                             <span asp-validation-for="Bio" class="validation-error"></span>
                         </div>
 
-                        <!-- Subscription plan -->
-                        <div class="form-group">
-                            <label for="floatingPlan" class="form-label">
-                                <i class="fas fa-crown"></i> SUBSCRIPTION PLAN
-                            </label>
-                            <select asp-for="PlanId" class="form-select custom-select" id="floatingPlan">
-                                <option value="">Select a plan (optional)</option>
-                                <option value="1">Free Plan - $0/month</option>
-                                <option value="2">Personal Plan - $1/month</option>
-                                <option value="3">Family Plan - $3.50/month</option>
-                                <option value="4">Business Plan - $35/month</option>
-                            </select>
-                            <span asp-validation-for="PlanId" class="validation-error"></span>
-                        </div>
-
                         <!-- Terms and conditions -->
                         <div class="form-check-group">
                             <input class="form-check-input custom-checkbox" type="checkbox" id="termsCheck" required>

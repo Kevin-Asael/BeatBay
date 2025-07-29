@@ -54,7 +54,7 @@ namespace BeatBay.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] CreateUserDto dto)
         {
-            // Validación de contraseña
+            // 1. Validación de contraseña
             if (dto.Password != dto.ConfirmPassword)
             {
                 return BadRequest(new
@@ -64,27 +64,21 @@ namespace BeatBay.Controllers
                     errors = new { ConfirmPassword = new[] { "Las contraseñas deben coincidir" } }
                 });
             }
-            // Verificar si el plan existe (1-4 según tu tabla)
-            var planExists = await _context.Plans.AnyAsync(p => p.Id == dto.PlanId);
-            if (!planExists)
-            {
-                return BadRequest(new
-                {
-                    success = false,
-                    message = "Plan no válido",
-                    errors = new { PlanId = new[] { "Seleccione un plan válido (1-4)" } }
-                });
-            }
+
+            // 2. Construir el usuario con PlanId = 1 (plan gratuito)
+            const int defaultPlanId = 1;
+
             var user = new User
             {
                 UserName = dto.UserName,
                 Email = dto.Email,
                 Name = dto.Name,
                 Bio = dto.Bio,
-                PlanId = dto.PlanId,
+                PlanId = defaultPlanId,   // ← se asigna automáticamente
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };
+
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
             {
@@ -96,35 +90,36 @@ namespace BeatBay.Controllers
                     errors = errors
                 });
             }
-            // Generar token de confirmación
+
+            // 3. Generar token de confirmación y componer enlace
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            // URL del MVC en lugar del API
-            var baseUrl = _configuration["MvcBaseUrl"] ?? "https://localhost:7194"; // Ajusta el puerto del MVC
-            var confirmationLink = $"{baseUrl}/VAuth/ConfirmEmail?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+            var baseUrl = _configuration["MvcBaseUrl"] ?? "https://localhost:7194";
+            var confirmationLink =
+                $"{baseUrl}/VAuth/ConfirmEmail?userId={user.Id}&token={Uri.EscapeDataString(token)}";
 
-            // Mensaje personalizado según la imagen
             var emailMessage = $@"
-        ¡Bienvenido a BeatBay!
+¡Bienvenido a BeatBay!
 
-        Hola {user.Name},
+Hola {user.Name},
 
-        Gracias por registrarte en BeatBay. Para completar tu registro, por favor confirma tu email haciendo clic en el siguiente enlace:
+Gracias por registrarte en BeatBay. Para completar tu registro, por favor confirma tu email haciendo clic en el siguiente enlace:
 
-        {confirmationLink}
+{confirmationLink}
 
-        ¡Gracias por unirte a nuestra comunidad musical!
+¡Gracias por unirte a nuestra comunidad musical!
 
-        El equipo de BeatBay
-    ";
+El equipo de BeatBay
+";
 
-            // Enviar email
             try
             {
                 await _emailSender.SendEmailAsync(
                     user.Email,
                     "Confirma tu email - BeatBay",
                     emailMessage);
+
                 await _userManager.AddToRoleAsync(user, "User");
+
                 return Ok(new
                 {
                     success = true,
@@ -134,7 +129,7 @@ namespace BeatBay.Controllers
             }
             catch (Exception ex)
             {
-                // Rollback si falla el email
+                // Revertir la creación si el email falla
                 await _userManager.DeleteAsync(user);
                 return StatusCode(500, new
                 {
@@ -144,6 +139,7 @@ namespace BeatBay.Controllers
                 });
             }
         }
+
 
         // **Confirmación de Email** - Simplificado solo para API
         [HttpGet("confirm-email")]

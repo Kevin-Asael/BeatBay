@@ -71,7 +71,7 @@ namespace BeatBay.API.Controllers
         // GET: api/playlists/5
         [HttpGet("{id}")]
         [AllowAnonymous] // Permitir ver detalles de playlist sin autenticación
-        public async Task<ActionResult<PlaylistDto>> GetPlaylist(int id)
+        public async Task<ActionResult<PlaylistDto>> GetPlaylist(int id) 
         {
             var playlist = await _context.Playlists
                 .Include(p => p.User)
@@ -109,7 +109,7 @@ namespace BeatBay.API.Controllers
 
         // GET: api/playlists/my-playlists
         [HttpGet("my-playlists")]
-        public async Task<ActionResult<IEnumerable<PlaylistDto>>> GetMyPlaylists()
+        public async Task<ActionResult<IEnumerable<PlaylistDto>>> GetMyPlaylists() //Endpoint para obtener las playlists del usuario autenticado
         {
             var user = await GetCurrentUser();
             if (user == null)

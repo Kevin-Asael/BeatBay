@@ -10,6 +10,7 @@ namespace BeatBay.Model
 {
     public class Role : IdentityRole<int>
     {
+        // Roles de usuario ADMIN ARTIST USER
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 }

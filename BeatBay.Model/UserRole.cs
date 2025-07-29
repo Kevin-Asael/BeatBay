@@ -9,6 +9,7 @@ namespace BeatBay.Model
 {
     public class UserRole : IdentityUserRole<int>
     {
+        // Relación entre Usuario y Rol
         public virtual User? User { get; set; }
         public virtual Role? Role { get; set; }
     }

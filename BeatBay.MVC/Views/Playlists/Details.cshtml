@@ -233,37 +233,16 @@
                                         </td>
                                         <td class="table-cell">
                                             <div class="d-flex align-items-center">
-                                                <button type="button" class="btn btn-outline-danger btn-sm rounded-circle delete-btn"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#removeSongModal-@song.Id"
-                                                        title="Remover de playlist">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                                <form asp-action="RemoveSong" asp-route-id="@Model.Id" asp-route-songId="@song.Id" method="post" style="display: inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-circle delete-btn"
+                                                            title="Remover de playlist">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
-
-                                    <!-- Modal para confirmar eliminación de canción -->
-                                    <div class="modal fade" id="removeSongModal-@song.Id" tabindex="-1">
-                                        <div class="modal-dialog modal-dialog-centered">
-                                            <div class="modal-content custom-modal">
-                                                <div class="modal-header custom-modal-header">
-                                                    <h5 class="modal-title">Remover Canción</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <div class="modal-body custom-modal-body">
-                                                    ¿Estás seguro de que deseas remover "<strong class="text-white">@song.Title</strong>" de esta playlist?
-                                                </div>
-                                                <div class="modal-footer custom-modal-footer">
-                                                    <button type="button" class="btn btn-secondary cancel-btn" data-bs-dismiss="modal">Cancelar</button>
-                                                    <form asp-action="RemoveSong" asp-route-id="@Model.Id" asp-route-songId="@song.Id" method="post" style="display: inline;">
-                                                        @Html.AntiForgeryToken()
-                                                        <button type="submit" class="btn btn-danger danger-btn">Remover</button>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 }
                             </tbody>
                         </table>
@@ -515,18 +494,6 @@
         animation: pulse 2s infinite;
     }
 
-    @@keyframes pulse {
-        0%, 100%
-
-    {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.7;
-    }
-
-    }
 
     /* Estilos existentes mantenidos */
     .playlist-title {
@@ -739,55 +706,6 @@
 
         .delete-btn i {
             font-size: 0.8rem;
-        }
-
-    .modal {
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(5px);
-    }
-
-    .custom-modal {
-        background: linear-gradient(135deg, #1f2937, #374151);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 15px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-
-    .custom-modal-header {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: #f8fafc;
-    }
-
-    .custom-modal-body {
-        color: rgba(248, 250, 252, 0.8);
-    }
-
-    .custom-modal-footer {
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .cancel-btn {
-        border-radius: 20px;
-        background: #374151;
-        border: none;
-        color: #d1d5db;
-    }
-
-        .cancel-btn:hover {
-            background: #4b5563;
-            color: #f3f4f6;
-        }
-
-    .danger-btn {
-        border-radius: 20px;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        border: none;
-    }
-
-        .danger-btn:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
         }
 
     .empty-state {
